@@ -156,7 +156,10 @@ bindsym $mod+Shift+r restart
 # exit i3 (logs you out of your X session)
 bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -b 'Yes, exit i3' 'i3-msg exit'"
 #lock
-bindsym $mod+Ctrl+Up exec "i3lock -B8 -k --ringcolor=777777aa --ringvercolor=777777aa --keyhlcolor=eeeeeeaa --insidevercolor=424242aa --insidecolor=eeeeeeaa --indicator --bshlcolor=242424aa --timefont=NotoMono --timesize=26 --datefont=NotoMono --linecolor=777777aa --insidewrongcolor=424242aa --ringwrongcolor=777777aa"
+set $lock i3lock -B8 -k --ringcolor=777777aa --ringvercolor=777777aa --keyhlcolor=eeeeeeaa --insidevercolor=424242aa --insidecolor=eeeeeeaa --indicator --bshlcolor=242424aa --timefont=NotoMono --timesize=26 --datefont=NotoMono --linecolor=777777aa --insidewrongcolor=424242aa --ringwrongcolor=777777aa
+
+bindsym $mod+Ctrl+Up exec $lock
+bindsym $mod+Ctrl+Down exec $lock && sudo pm-suspend
 
 # resize window (you can also use the mouse for that)
 mode "resize" {
