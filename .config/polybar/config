@@ -165,14 +165,14 @@ type = internal/temperature
 ; To list all the zone types, run 
 ; $ for i in /sys/class/thermal/thermal_zone*; do echo "$i: $(<$i/type)"; done
 ; Default: 0
-thermal-zone = 0
+thermal-zone = 2
 
 ; Full path of temperature sysfs path
 ; Use `sensors` to find preferred temperature source, then run
 ; $ for i in /sys/class/hwmon/hwmon*/temp*_input; do echo "$(<$(dirname $i)/name): $(cat ${i%_*}_label 2>/dev/null || echo $(basename ${i%_*})) $(readlink -f $i)"; done
 ; to find path to desired file
 ; Default reverts to thermal zone setting
-;hwmon-path = /sys/devices/platform/coretemp.0/hwmon/hwmon2/temp1_input
+hwmon-path = /sys/devices/platform/coretemp.0/hwmon/hwmon0/temp1_input
 
 warn-temperature = 60
 format = <ramp> <label>
@@ -190,7 +190,7 @@ ramp-5 = 
 ;ramp-0-foreground = #00b4ff
 ;ramp-1-foreground = #00b4ff
 ;ramp-2-foreground = #00b4ff
-ramp-3-foreground = #ffdc00
+;ramp-3-foreground = #ffdc00
 ramp-4-foreground = #ffdc00
 ramp-5-foreground = #ff0040
 
