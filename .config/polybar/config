@@ -9,7 +9,7 @@ height = 27
 
 background = #222222
 foreground = #eefafafa
-linecolor = #fba922
+linecolor = #fa6321
 
 ;line-color = #00000000
 line-size = 2
@@ -132,7 +132,7 @@ format = <label>
 ;   %mb_used%
 ;   %mb_free%
 ;   %mb_total%
-label =  %percentage_used%%
+label =  %gb_free%
 
 bar-used-indicator =
 bar-used-width = 10
@@ -152,7 +152,7 @@ mount-0 = /
 
 interval = 30
 format-mounted = <label-mounted>
-label-mounted =  %mountpoint% %percentage_used%%
+label-mounted =  %mountpoint% %free%
 fixed-values = true
 spacing = 4
 
