@@ -9,15 +9,22 @@ gaps inner 10
 smart_gaps on
 #smart_borders on
 
-new_window pixel 2
+new_window pixel 4
 new_float none
 
 hide_edge_borders smart
 #for_window [class="^.*"] border pixel 0
-client.focused          #3579a8 #3579a8 #ffffff #484e50 #3579a8
-client.focused_inactive #5f676a #5f676a #ffffff #5f676a #5f676a
-client.unfocused        #5f676a #5f676a #999999 #ff0000 #5f676a
-client.urgent           #2f343a #900000 #ffffff #900000 #900000
+
+set $active    #fa6321
+set $inactive  #5f676a
+set $text      #ffffff
+set $paletext  #999999
+set $urgent    #bd2c40
+# class                 border    backgr.   text      indicator child_border
+client.focused          $active   $active   $text     $inactive $active
+client.focused_inactive $inactive $inactive $text     $inactive $inactive
+client.unfocused        $inactive $inactive $paletext $inactive $inactive
+client.urgent           $urgent   $urgent   $text     $urgent   $urgent
 
 client.background       #ff0000
 
