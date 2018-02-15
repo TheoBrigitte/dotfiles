@@ -24,10 +24,10 @@ PS1="\[\033[01;34m\]\u@\h:\W\$\[\033[00m\] "
 export GOPATH="$HOME"
 export GOBIN="$GOPATH/bin"
 
-local LOCAL_BIN="$HOME/.local/bin"
+LOCAL_BIN="$HOME/.local/bin"
 export PATH="$PATH:$LOCAL_BIN:$GOBIN"
 export EDITOR=vim
 export VISUAL=$EDITOR
 
-export GITHUB_TOKEN=$(cat .secrets/token.theo.github.com)
+export GITHUB_TOKEN=$(cat "$HOME/.secrets/token.theo.github.com")
 export OPSCTL_GITHUB_TOKEN=$GITHUB_TOKEN
