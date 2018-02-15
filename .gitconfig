@@ -12,3 +12,5 @@
 	heir = log --all --graph --decorate --oneline --simplify-by-decoration
 [push]
 	default = upstream
+[url "git@github.com:"]
+	insteadOf = https://github.com/
