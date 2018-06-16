@@ -1,6 +1,7 @@
 [user]
 	name = Theo Brigitte
 	email = theo.brigitte@gmail.com
+	signingkey = 62A81E0F3445587C
 [color]
 	diff = auto
 	status = auto
