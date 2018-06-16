@@ -6,7 +6,7 @@
 [[ $- != *i* ]] && return
 
 # ssh keys
-eval $(keychain --eval --quiet theo_id_rsa gs_id_rsa)
+eval $(keychain --eval --quiet theo/id_rsa giantswarm/id_rsa)
 
 # bash aliases
 [ -f "$HOME/.config/bash/aliases" ] && source "$HOME/.config/bash/aliases"
@@ -29,5 +29,5 @@ export PATH="$PATH:$LOCAL_BIN:$GOBIN"
 export EDITOR=vim
 export VISUAL=$EDITOR
 
-export GITHUB_TOKEN=$(cat "$HOME/.secrets/token.theo.github.com")
+export GITHUB_TOKEN=$(cat "$HOME/secrets/theo/github.com-token")
 export OPSCTL_GITHUB_TOKEN=$GITHUB_TOKEN
