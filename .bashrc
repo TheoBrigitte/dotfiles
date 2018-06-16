@@ -29,5 +29,5 @@ export PATH="$PATH:$LOCAL_BIN:$GOBIN"
 export EDITOR=vim
 export VISUAL=$EDITOR
 
-export GITHUB_TOKEN=$(cat "$HOME/.secrets/token.theo.github.com")
+export GITHUB_TOKEN=$(cat "$HOME/secrets/theo/github.com-token")
 export OPSCTL_GITHUB_TOKEN=$GITHUB_TOKEN
