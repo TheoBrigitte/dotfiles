@@ -1,5 +1,7 @@
 # bash
-alias ls='ls --color=auto'
+[[ "$OSTYPE" == "linux-gnu" ]] && LS_ARGS="--color=auto"
+[[ "$OSTYPE" == "darwin"* ]] && LS_ARGS="-G"
+alias ls="ls $LS_ARGS"
 alias ll='ls -lh'
 
 # irc

@@ -8,6 +8,7 @@
 	branch = auto
 [core]
 	editor = vim
+        pager = less -FX
 [alias]
 	lg = log --graph --pretty=format:'%Cgreen%h%Creset -%Creset %s%C(yellow)%d %Cblue(%aN, %cr)%Creset' --abbrev-commit --date=relative
 	heir = log --all --graph --decorate --oneline --simplify-by-decoration
@@ -15,3 +16,5 @@
 	default = upstream
 [url "git@github.com:"]
 	insteadOf = https://github.com/
+[pager]
+	status = true

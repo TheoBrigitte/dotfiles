@@ -6,16 +6,17 @@
 [[ $- != *i* ]] && return
 
 # ssh keys
-eval $(keychain --eval --quiet theo/id_rsa giantswarm/id_rsa)
+command -v keychain && \
+  eval $(keychain --eval --quiet theo/id_rsa giantswarm/id_rsa)
 
 # bash aliases
-[ -f "$HOME/.config/bash/aliases" ] && source "$HOME/.config/bash/aliases"
+[ -r "$HOME/.config/bash/aliases" ] && source "$HOME/.config/bash/aliases"
 
 # bash completion
-[ -f "$HOME/.local/lib/azure-cli/az.completion" ] && source "$HOME/.local/lib/azure-cli/az.completion"
-[ -f "$HOME/.config/bash/gsctl-completion" ] && source "$HOME/.config/bash/gsctl-completion"
-[ -f "$HOME/.config/bash/kubectl-completion" ] && source "$HOME/.config/bash/kubectl-completion"
-[ -f "$HOME/.config/bash/opsctl-completion" ] && source "$HOME/.config/bash/opsctl-completion"
+[ -r "$HOME/.local/lib/azure-cli/az.completion" ] && source "$HOME/.local/lib/azure-cli/az.completion"
+[ -r "$HOME/.config/bash/gsctl-completion" ] && source "$HOME/.config/bash/gsctl-completion"
+[ -r "$HOME/.config/bash/kubectl-completion" ] && source "$HOME/.config/bash/kubectl-completion"
+[ -r "$HOME/.config/bash/opsctl-completion" ] && source "$HOME/.config/bash/opsctl-completion"
 
 # bash prompt
 PS1="\[\033[01;34m\]\u@\h:\W\$\[\033[00m\] "
@@ -31,3 +32,5 @@ export VISUAL=$EDITOR
 
 export GITHUB_TOKEN=$(cat "$HOME/secrets/theo/github.com-token")
 export OPSCTL_GITHUB_TOKEN=$GITHUB_TOKEN
+
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash

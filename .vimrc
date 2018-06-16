@@ -1,3 +1,11 @@
+" pathogen plugin
+"execute pathogen#infect()
+autocmd StdinReadPre * let s:std_in=1
+autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'NERDTree' argv()[0] | wincmd p | ene | endif
+autocmd FileType yaml setlocal ts=2 sts=2 sw=2 expandtab
+
+set rtp+=/usr/local/opt/fzf
+
 " Vimrc for Drupal programming
 "
 " Features list:
@@ -46,7 +54,6 @@ let g:indentLine_char = '¦'
 
 " [ Settings ]
 "
-"set list
 "set nocompatible
 set mouse=a
 set number
@@ -59,10 +66,10 @@ set showcmd
 "set colorcolumn=80
 "
 " Ident
-set expandtab
-set shiftwidth=2
-set softtabstop=2
-set list listchars=tab:--,trail:.,extends:>,precedes:<
+"set expandtab
+"set shiftwidth=2
+"set softtabstop=2
+"set list listchars=tab:--,trail:.,extends:>,precedes:<
 "highlight ColorColumn ctermbg=DarkGray guibg=Gray14
 syntax on
 filetype plugin indent on
@@ -74,6 +81,9 @@ set ffs=unix,dos,mac
 set nobackup
 set nowb
 set noswapfile
+set backspace=eol,start,indent
+" Copy/Paste
+set clipboard=unnamed
 
 " [ Mapping ]
 "
