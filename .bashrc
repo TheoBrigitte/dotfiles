@@ -6,7 +6,7 @@
 [[ $- != *i* ]] && return
 
 # ssh keys
-eval $(keychain --eval --quiet theo_id_rsa gs_id_rsa)
+eval $(keychain --eval --quiet theo/id_rsa giantswarm/id_rsa)
 
 # bash aliases
 [ -f "$HOME/.config/bash/aliases" ] && source "$HOME/.config/bash/aliases"
