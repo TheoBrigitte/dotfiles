@@ -24,3 +24,5 @@ alias gcountcommits="git shortlog -sn"
 alias gl='git log'
 alias gll='git log --decorate --graph --oneline'
 
+# giantswarm
+alias opsctl-ssh="opsctl ssh --machine-user giantswarm --cert-based"
