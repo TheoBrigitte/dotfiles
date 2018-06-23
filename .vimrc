@@ -84,6 +84,7 @@ set noswapfile
 set backspace=eol,start,indent
 " Copy/Paste
 set clipboard=unnamed
+set relativenumber
 
 " [ Mapping ]
 "
