@@ -6,7 +6,7 @@
 [[ $- != *i* ]] && return
 
 # ssh keys
-command -v keychain && \
+command -v keychain >/dev/null && \
   eval $(keychain --eval --quiet theo/id_rsa giantswarm/id_rsa)
 
 # bash aliases
