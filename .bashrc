@@ -22,7 +22,11 @@ command -v keychain >/dev/null && \
 # bash prompt
 PS1="\[\033[01;34m\]\u@\h:\W\$\[\033[00m\] "
 
-# go
+# fzf: fuzzy finder (CTRL+r)
+[ -r /usr/share/fzf/key-bindings.bash ] && source /usr/share/fzf/key-bindings.bash
+[ -r /usr/share/fzf/completion.bash ] && source /usr/share/fzf/completion.bash
+
+# golang
 export GOPATH="$HOME"
 export GOBIN="$GOPATH/bin"
 
@@ -34,4 +38,3 @@ export VISUAL=$EDITOR
 export GITHUB_TOKEN=$(cat "$HOME/secrets/theo/github.com-token")
 export OPSCTL_GITHUB_TOKEN=$GITHUB_TOKEN
 
-[ -f ~/.fzf.bash ] && source ~/.fzf.bash
