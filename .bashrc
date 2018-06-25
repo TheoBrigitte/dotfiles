@@ -30,6 +30,10 @@ PS1="\[\033[01;34m\]\u@\h:\W\$\[\033[00m\] "
 export GOPATH="$HOME"
 export GOBIN="$GOPATH/bin"
 
+# kubernetes
+KUBE_PS1_SYMBOL_ENABLE=false
+[ -r "$HOME/.config/bash/kube-ps1.sh" ] && source "$HOME/.config/bash/kube-ps1.sh"
+
 LOCAL_BIN="$HOME/.local/bin"
 export PATH="$PATH:$LOCAL_BIN:$GOBIN"
 export EDITOR=vim
