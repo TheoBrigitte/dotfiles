@@ -1,6 +1,26 @@
 #
 # ~/.bashrc
 #
+#----------------------------------------------------------------------------#
+# Bash text colour specification:  \e[<STYLE>;<COLOUR>m
+# (Note: \e = \033 (oct) = \x1b (hex) = 27 (dec) = "Escape")
+# Styles:  0=normal, 1=bold, 2=dimmed, 4=underlined, 7=highlighted
+# Colours: 31=red, 32=green, 33=yellow, 34=blue, 35=purple, 36=cyan, 37=white
+#----------------------------------------------------------------------------#
+function build_prompt() {
+	local ex=$?
+
+	local blue='\[\e[1;34m\]'
+	local red='\[\e[1;31m\]'
+	local reset='\[\e[0m\]'
+
+	local exit_color="${blue}"
+	[[ "$ex" -ne 0 ]] && exit_color="${red}"
+	local exit_code="${exit_color}»${reset}"
+
+	local date='[\D{%H:%M:%S}]'
+	PS1="${exit_code} ${date} ${blue}\u@\h:\W ${reset}$(kube_ps1)${blue}\$${reset} "
+}
 
 # If not running interactively, don't do anything
 [[ $- != *i* ]] && return
@@ -20,7 +40,7 @@ command -v keychain >/dev/null && \
 [ -r "$HOME/.config/bash/opsctl-completion" ] && source "$HOME/.config/bash/opsctl-completion"
 
 # bash prompt
-PS1="\[\033[01;34m\]\u@\h:\W\$\[\033[00m\] "
+export PROMPT_COMMAND=build_prompt
 
 # fzf: fuzzy finder (CTRL+r)
 [ -r /usr/share/fzf/key-bindings.bash ] && source /usr/share/fzf/key-bindings.bash
