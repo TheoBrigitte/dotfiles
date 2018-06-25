@@ -31,6 +31,7 @@ command -v keychain >/dev/null && \
 
 # bash aliases
 [ -r "$HOME/.config/bash/aliases" ] && source "$HOME/.config/bash/aliases"
+[ -r "$HOME/.config/bash/functions" ] && source "$HOME/.config/bash/functions"
 
 # bash completion
 [ -r /usr/share/bash-completion/bash_completion ] && source /usr/share/bash-completion/bash_completion

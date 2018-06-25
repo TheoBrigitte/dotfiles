@@ -1,0 +1,3 @@
+function g8s() {
+	cd $GOPATH/src/github.com/giantswarm/$1;
+}
