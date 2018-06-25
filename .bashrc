@@ -13,6 +13,7 @@ command -v keychain >/dev/null && \
 [ -r "$HOME/.config/bash/aliases" ] && source "$HOME/.config/bash/aliases"
 
 # bash completion
+[ -r /usr/share/bash-completion/bash_completion ] && source /usr/share/bash-completion/bash_completion
 [ -r "$HOME/.local/lib/azure-cli/az.completion" ] && source "$HOME/.local/lib/azure-cli/az.completion"
 [ -r "$HOME/.config/bash/gsctl-completion" ] && source "$HOME/.config/bash/gsctl-completion"
 [ -r "$HOME/.config/bash/kubectl-completion" ] && source "$HOME/.config/bash/kubectl-completion"
