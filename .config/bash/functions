@@ -1,3 +1,7 @@
 function g8s() {
 	cd $GOPATH/src/github.com/giantswarm/$1;
 }
+
+function g8s-get() {
+	go get -v -d github.com/giantswarm/$1;
+}
