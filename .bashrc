@@ -29,30 +29,29 @@ function build_prompt() {
 command -v keychain >/dev/null && \
   eval $(keychain --eval --quiet theo/id_rsa giantswarm/id_rsa)
 
-# bash aliases
+# aliases
 [ -r "$HOME/.config/bash/aliases" ] && source "$HOME/.config/bash/aliases"
 [ -r "$HOME/.config/bash/functions" ] && source "$HOME/.config/bash/functions"
 
-# bash completion
+# completion
 [ -r /usr/share/bash-completion/bash_completion ] && source /usr/share/bash-completion/bash_completion
 [ -r "$HOME/.local/lib/azure-cli/az.completion" ] && source "$HOME/.local/lib/azure-cli/az.completion"
 
-# bash prompt
-export PROMPT_COMMAND=build_prompt
 
 # fzf: fuzzy finder (CTRL+r)
 [ -r /usr/share/fzf/key-bindings.bash ] && source /usr/share/fzf/key-bindings.bash
 [ -r /usr/share/fzf/completion.bash ] && source /usr/share/fzf/completion.bash
 
-# golang
+# prompt
+KUBE_PS1_SYMBOL_ENABLE=false
+PROMPT_COMMAND=""
+[ -r "$HOME/.config/bash/kube-ps1.sh" ] && source "$HOME/.config/bash/kube-ps1.sh"
+PROMPT_COMMAND="build_prompt;${PROMPT_COMMAND:-:}"
+
+# environment variables
+LOCAL_BIN="$HOME/.local/bin"
 export GOPATH="$HOME"
 export GOBIN="$GOPATH/bin"
-
-# kubernetes
-KUBE_PS1_SYMBOL_ENABLE=false
-[ -r "$HOME/.config/bash/kube-ps1.sh" ] && source "$HOME/.config/bash/kube-ps1.sh"
-
-LOCAL_BIN="$HOME/.local/bin"
 export PATH="$PATH:$LOCAL_BIN:$GOBIN"
 export EDITOR=vim
 export VISUAL=$EDITOR
