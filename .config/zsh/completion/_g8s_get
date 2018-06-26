@@ -1,0 +1,28 @@
+#compdef g8s-get
+#
+_g8s_get_cache_policy() {
+  local -a newer
+  # rebuild if cache does not exist or is more than a week old
+  newer=( "$1"(Nmd-1) )
+  return $#newer
+}
+
+#_arguments \
+#  '1: :_values -s "\n" "repos" $(_gile)'
+
+_arguments '1: :->repos'
+
+case $state in
+  repos)
+    local cache_id=gi_gile
+    zstyle ":completion:${curcontext}:" cache-policy _g8s_get_cache_policy
+
+    declare -a template
+    if _cache_invalid $cache_id || ! _retrieve_cache $cache_id; then
+      template=($(gile -org giantswarm))
+      _store_cache $cache_id template
+    fi
+    _describe 'repositories' template
+    ;;
+esac
+
