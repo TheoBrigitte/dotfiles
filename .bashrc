@@ -30,36 +30,15 @@ build_prompt() {
 # If not running interactively, don't do anything
 [[ $- != *i* ]] && return
 
-# ssh keys
-command -v keychain >/dev/null && \
-  eval $(keychain --eval --quiet theo/id_rsa giantswarm/id_rsa)
-
-# aliases
-[ -r "$HOME/.config/bash/aliases" ] && source "$HOME/.config/bash/aliases"
-[ -r "$HOME/.config/bash/functions" ] && source "$HOME/.config/bash/functions"
+# common
+[ -r "$HOME/.config/bash/common" ] && source "$HOME/.config/bash/common"
 
 # completion
 [ -r /usr/share/bash-completion/bash_completion ] && source /usr/share/bash-completion/bash_completion
-[ -r "$HOME/.local/lib/azure-cli/az.completion" ] && source "$HOME/.local/lib/azure-cli/az.completion"
-
 
 # fzf: fuzzy finder (CTRL+r)
 [ -r /usr/share/fzf/key-bindings.bash ] && source /usr/share/fzf/key-bindings.bash
 [ -r /usr/share/fzf/completion.bash ] && source /usr/share/fzf/completion.bash
 
 # prompt
-KUBE_PS1_SYMBOL_ENABLE=false
-[ -r "$HOME/.config/bash/kube-ps1.sh" ] && source "$HOME/.config/bash/kube-ps1.sh"
 build_prompt
-
-# environment variables
-LOCAL_BIN="$HOME/.local/bin"
-export GOPATH="$HOME"
-export GOBIN="$GOPATH/bin"
-export PATH="$PATH:$LOCAL_BIN:$GOBIN"
-export EDITOR=vim
-export VISUAL=$EDITOR
-
-export GITHUB_TOKEN=$(cat "$HOME/secrets/theo/github.com-token")
-export OPSCTL_GITHUB_TOKEN=$GITHUB_TOKEN
-
