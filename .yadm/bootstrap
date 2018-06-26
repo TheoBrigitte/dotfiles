@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+
+set -eu
+
+SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
+FORCE=false
+
+function main() {
+    detect_force "$@"
+
+    install_theo_tools
+    install_giantswarm_tools
+
+    _printf "> install successful!"
+
+    echo "> restart: ${SHELL}"
+    exec -l $SHELL
+}
+
+function _printf() {
+    fmt="%-30s%-12s%-12s\n"
+    printf ${fmt} "$@"
+}
+
+function ask() {
+    if ${FORCE}; then
+        _printf "> $1 (forced)"
+        return 0
+    fi
+
+    read -n1 -p "> $1 ? [yN] " REPLY
+    _printf
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+function detect_force() {
+    if [ $# -gt 0 ]; then
+        if [ "${1}" == "-f" ]; then
+            FORCE=true
+        fi
+    fi
+}
+
+function goinstall() {
+	go install "${1}"
+}
+
+function install_theo_tools() {
+    if ! ask "install theo tools"; then
+        return 0
+    fi
+
+    _printf "> install github.com/TheoBrigitte/gile"
+    goinstall github.com/TheoBrigitte/gile
+}
+
+
+function install_giantswarm_tools() {
+    if ! ask "install giantswarm tools"; then
+        return 0
+    fi
+
+    _printf "> install github.com/giantswarm/opsctl"
+    goinstall github.com/giantswarm/opsctl
+
+    _printf "> install github.com/giantswarm/gsctl"
+    goinstall github.com/giantswarm/gsctl
+
+    _printf "> install github.com/giantswarm/luigi"
+    goinstall github.com/giantswarm/luigi
+
+    _printf "> install github.com/giantswarm/e2e-harness"
+    goinstall github.com/giantswarm/e2e-harness
+
+    install_completion
+}
+
+function install_completion() {
+    local bash_completion=".local/share/bash-completion/completions"
+
+    opsctl completion bash > "${bash_completion}/opsctl"
+
+    gsctl completion
+    mv gsctl-completion-bash.sh "${bash_completion}/gsctl"
+    rm -f gsctl-completion-zsh.sh
+}
+
+main "$@"
