@@ -8,8 +8,10 @@ FORCE=false
 function main() {
     detect_force "$@"
 
+    install_oh_my_zsh
     install_theo_tools
     install_giantswarm_tools
+    install_completion
 
     _printf "> install successful!"
 
@@ -46,7 +48,15 @@ function detect_force() {
 }
 
 function goinstall() {
-	go install "${1}"
+    go install "${1}"
+}
+
+function install_oh_my_zsh() {
+    if [ ! -e "$HOME/.config/zsh/oh-my-zsh" ]; then
+        git clone https://github.com/robbyrussell/oh-my-zsh.git "$HOME/.config/zsh/oh-my-zsh"
+    else
+        _printf "> oh-my-zsh installed in" "$HOME/.config/zsh/oh-my-zsh"
+    fi
 }
 
 function install_theo_tools() {
@@ -75,18 +85,31 @@ function install_giantswarm_tools() {
 
     _printf "> install github.com/giantswarm/e2e-harness"
     goinstall github.com/giantswarm/e2e-harness
-
-    install_completion
 }
 
 function install_completion() {
+    if ! ask "install completion"; then
+        return 0
+    fi
+
     local bash_completion=".local/share/bash-completion/completions"
+    local zsh_completion=".config/zsh/completion"
 
     opsctl completion bash > "${bash_completion}/opsctl"
+    opsctl completion zsh > "${zsh_completion}/_opsctl"
 
     gsctl completion
     mv gsctl-completion-bash.sh "${bash_completion}/gsctl"
-    rm -f gsctl-completion-zsh.sh
+    mv gsctl-completion-zsh.sh "${zsh_completion}/_gsctl"
+
+    helm completion bash > "${bash_completion}/helm"
+    helm completion zsh > "${zsh_completion}/_helm"
+
+    kubectl completion bash > "${bash_completion}/kubectl"
+    kubectl completion zsh > "${zsh_completion}/_kubectl"
+
+    minikube completion bash > "${bash_completion}/minikube"
+    minikube completion zsh > "${zsh_completion}/_minikube"
 }
 
 main "$@"
