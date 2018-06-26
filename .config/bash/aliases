@@ -13,6 +13,7 @@ alias kb="kubectl -s http://kubemaster1-beta.erento.io:8080 --namespace beta"
 alias kp="kubectl -s http://kubemaster1-prod.erento.io:8080 --namespace production"
 
 # git
+alias ga='git add'
 alias gap='git add -p'
 alias gs='git status'
 alias gd='git diff'
