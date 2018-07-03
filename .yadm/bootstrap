@@ -8,6 +8,7 @@ FORCE=false
 function main() {
     detect_force "$@"
 
+    install_packages
     install_oh_my_zsh
     install_theo_tools
     install_giantswarm_tools
@@ -47,8 +48,83 @@ function detect_force() {
     fi
 }
 
-function goinstall() {
-    go install "${1}"
+function detect_os() {
+    _printf "> detect os"
+    # [[ "$OSTYPE" == "linux-gnu" ]]
+    # [[ "$OSTYPE" == "darwin"* ]]
+}
+
+function install_packages() {
+    if ! ask "install packages"; then
+        return 0
+    fi
+
+    case "$OSTYPE" in
+      darwin*)
+        _printf "> osx not implemented yet" ;;
+      linux*)
+        if [ -f "/etc/arch-release" ]; then
+            _printf "> install packages for arch linux"
+            install_packages_arch
+        else
+            _printf "> supported linux (arch)"
+        fi ;;
+      *)
+        _printf "> unsupported os: ${$OSTYPE}" ;;
+    esac
+}
+
+function install_packages_arch() {
+    install_packages_arch_pacman
+    install_packages_arch_yaourt
+}
+
+function install_packages_arch_pacman() {
+    local packages=""
+
+    for file in $(ls $HOME/.yadm/packages/arch/pacman/); do
+        if ask "install pacman ${file}"; then
+            packages="${packages}
+$(cat "$HOME/.yadm/packages/arch/pacman/${file}")"
+        fi
+    done
+
+    if [ -n "${packages}" ]; then
+        sudo pacman -Sy --noconfirm ${packages}
+    fi
+}
+
+function install_packages_arch_yaourt() {
+    if ! command -v yaourt > /dev/null; then
+        install_yaourt
+    fi
+
+    local packages=""
+
+    for file in $(ls $HOME/.yadm/packages/arch/yaourt/); do
+        if ask "install yaourt ${file}"; then
+            packages="${packages}
+$(cat "$HOME/.yadm/packages/arch/yaourt/${file}")"
+        fi
+    done
+
+    if [ -n "${packages}" ]; then
+        yaourt -Sy --noconfirm ${packages}
+    fi
+}
+
+function install_yaourt() {
+    # install package-query
+    cd /tmp
+    git clone https://aur.archlinux.org/package-query.git
+    cd package-query
+    makepkg -si
+
+    # install yaourt
+    cd /tmp
+    git clone https://aur.archlinux.org/yaourt.git
+    cd yaourt
+    makepkg -si
 }
 
 function install_oh_my_zsh() {
