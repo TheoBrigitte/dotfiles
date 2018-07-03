@@ -65,7 +65,10 @@ function install_theo_tools() {
     fi
 
     _printf "> install github.com/TheoBrigitte/gile"
-    goinstall github.com/TheoBrigitte/gile
+    go install github.com/TheoBrigitte/gile
+
+    _printf "> install golang.org/x/lint/golint"
+    go get -u golang.org/x/lint/golint
 }
 
 
@@ -75,16 +78,16 @@ function install_giantswarm_tools() {
     fi
 
     _printf "> install github.com/giantswarm/opsctl"
-    goinstall github.com/giantswarm/opsctl
+    go install github.com/giantswarm/opsctl
 
     _printf "> install github.com/giantswarm/gsctl"
-    goinstall github.com/giantswarm/gsctl
+    go install github.com/giantswarm/gsctl
 
     _printf "> install github.com/giantswarm/luigi"
-    goinstall github.com/giantswarm/luigi
+    go install github.com/giantswarm/luigi
 
     _printf "> install github.com/giantswarm/e2e-harness"
-    goinstall github.com/giantswarm/e2e-harness
+    go install github.com/giantswarm/e2e-harness
 }
 
 function install_completion() {
