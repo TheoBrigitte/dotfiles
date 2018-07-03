@@ -88,6 +88,13 @@ function install_giantswarm_tools() {
 
     _printf "> install github.com/giantswarm/e2e-harness"
     go install github.com/giantswarm/e2e-harness
+
+    (
+        mkdir -p "$HOME/.helm/plugins/"
+        cd "$HOME/.helm/plugins/"
+        git clone https://github.com/app-registry/appr-helm-plugin.git registry
+        helm registry --help
+    )
 }
 
 function install_completion() {
