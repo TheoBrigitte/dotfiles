@@ -1,0 +1,12 @@
+base-devel
+bash-completion
+dnsutils
+keychain
+libva-vdpau-driver
+linux-headers
+nvidia
+nvidia-utils
+guvcview
+redshift
+rsync
+vlc

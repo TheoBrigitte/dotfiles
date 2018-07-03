@@ -1,0 +1,13 @@
+dep
+glide
+kubernetes-helm
+kubectl-bin
+kubectx
+minikube
+openvpn-update-systemd-resolved
+python-azure-cli
+slack-desktop
+vi-vim-symlink
+yadm-git
+yamllint
+yq
