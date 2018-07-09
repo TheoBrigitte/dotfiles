@@ -1,8 +1,8 @@
-g8s() {
+gi() {
 	cd $GOPATH/src/github.com/giantswarm/$1;
 }
 
-g8s-get() {
+gi-get() {
 	go get -v -d github.com/giantswarm/$1;
 }
 

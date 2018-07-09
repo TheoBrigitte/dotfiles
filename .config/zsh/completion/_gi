@@ -1,4 +1,4 @@
-#compdef g8s
+#compdef gi
 
 _arguments \
   '1: :_path_files -W $GOPATH/src/github.com/giantswarm/ -/'

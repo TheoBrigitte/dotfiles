@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-_g8s()
+_gi()
 {
     local cur=${COMP_WORDS[COMP_CWORD]}
     COMPREPLY=( $(compgen -W "$(ls $GOPATH/src/github.com/giantswarm)" -- $cur) )
 }
 
-complete -F _g8s g8s
+complete -F _gi gi
