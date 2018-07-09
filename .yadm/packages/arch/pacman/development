@@ -7,6 +7,7 @@ jq
 nmap
 the_silver_searcher
 tmux
+universal-ctags-git
 vim
 virtualbox
 zsh
