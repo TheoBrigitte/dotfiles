@@ -21,6 +21,14 @@ export PATH="$PATH:$LOCAL_BIN:$GOBIN"
 export EDITOR=vim
 export VISUAL=$EDITOR
 
+export FZF_DEFAULT_COMMAND='rg --files --hidden --follow --glob "!.git/*"'
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+export FZF_ALT_C_COMMAND="$FZF_DEFAULT_COMMAND"
+export FZF_DEFAULT_OPTS='
+--color fg:242,bg:236,hl:65,fg+:15,bg+:239,hl+:108
+--color info:108,prompt:109,spinner:108,pointer:168,marker:168
+'
+
 export GITHUB_TOKEN=$(cat "$HOME/secrets/theo/github.com-token")
 export OPSCTL_GITHUB_TOKEN=$GITHUB_TOKEN
 

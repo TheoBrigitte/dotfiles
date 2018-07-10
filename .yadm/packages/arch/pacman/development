@@ -5,7 +5,7 @@ go
 httpie
 jq
 nmap
-the_silver_searcher
+ripgrep
 tmux
 universal-ctags-git
 vim
