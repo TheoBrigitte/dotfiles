@@ -4,6 +4,8 @@
 alias ls="ls $LS_ARGS"
 alias ll='ls -lh'
 
+alias t='tmux'
+
 # irc
 alias irc='ssh -t theo@higgs screen -r irc'
 
