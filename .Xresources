@@ -83,8 +83,8 @@ URxvt*highlightTextColor: #E7EBED
 ! URxvt*borderColor: colour
 
 ! Select the fonts to be used. This is a comma separated list of font names that are checked in order when trying to find glyphs for characters. The first font defines the cell size for characters;
-URxvt*font: xft:Inconsolata:size=12
-URxvt*boldFont: xft:Inconsolata:bold:size=12
+URxvt*font: xft:Inconsolata:size=12:antialias=true
+URxvt*boldFont: xft:Inconsolata:bold:size=12:antialias=true
 
 ! Set scrollbar style to rxvt, plain, next or xterm. plain is the authors favourite.
 ! URxvt*scrollstyle: mode
@@ -153,9 +153,6 @@ URxvt.keysym.M-Up:           \033[1;3A
 URxvt.keysym.M-Down:         \033[1;3B
 URxvt.keysym.M-Right:        \033[1;3C
 URxvt.keysym.M-Left:         \033[1;3D
-! Specifies the program to be started with a URL argument. Used by the "selection-popup" and "matcher" perl extensions.
-! URxvt*url-launcher: string
-
 
 URxvt*iso14755: False
 URxvt.iconFile: /usr/share/icons/Numix-Square/48/apps/terminal.svg
