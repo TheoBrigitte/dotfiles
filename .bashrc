@@ -42,3 +42,5 @@ build_prompt() {
 
 # prompt
 build_prompt
+
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
