@@ -13,6 +13,7 @@ function main() {
     install_theo_tools
     install_giantswarm_tools
     install_completion
+    install_vim_config
 
     _printf "> install successful!"
 
@@ -196,6 +197,14 @@ function install_completion() {
 
     minikube completion bash > "${bash_completion}/minikube"
     minikube completion zsh > "${zsh_completion}/_minikube"
+}
+
+function install_vim_config() {
+    if ! ask "install vim config"; then
+        return 0
+    fi
+    git clone https://github.com/TheoBrigitte/vim.git ~/.vim
+    ~/.vim/install.sh
 }
 
 main "$@"
