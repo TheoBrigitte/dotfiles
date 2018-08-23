@@ -129,6 +129,7 @@ function install_yaourt() {
 }
 
 function install_oh_my_zsh() {
+    _printf "> install oh-my-zsh"
     if [ ! -e "$HOME/.config/zsh/oh-my-zsh" ]; then
         git clone https://github.com/robbyrussell/oh-my-zsh.git "$HOME/.config/zsh/oh-my-zsh"
     else
