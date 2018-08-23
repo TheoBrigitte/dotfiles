@@ -13,6 +13,8 @@ alias irc='ssh -t theo@higgs screen -r irc'
 alias k="kubectl"
 alias kb="kubectl -s http://kubemaster1-beta.erento.io:8080 --namespace beta"
 alias kp="kubectl -s http://kubemaster1-prod.erento.io:8080 --namespace production"
+alias kx="kubectx"
+alias kns="kubens"
 
 # git
 alias ga='git add'
