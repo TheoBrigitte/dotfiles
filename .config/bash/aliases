@@ -33,3 +33,5 @@ alias gll='git log --decorate --graph --oneline'
 
 # giantswarm
 alias opsctl-ssh="opsctl ssh --machine-user giantswarm --cert-based"
+alias standup="vim +'normal G' +'r!date' +'normal o' +startinsert ~/standup.txt"
+alias todo="vim ~/src/github.com/giantswarm/TODO.md"
