@@ -112,7 +112,8 @@ compinit
 
 # completion (broken ones only)
 [ -r "$HOME/.config/zsh/completion/_helm" ] && source "$HOME/.config/zsh/completion/_helm"
-[ -r "$HOME/.config/zsh/completion/_minikube" ] && source "$HOME/.config/zsh/completion/_minikube"
+([ -r "$HOME/.config/zsh/completion/_minikube" ] && source "$HOME/.config/zsh/completion/_minikube") ||
+	([ -f ~/.fzf.zsh ] && source ~/.fzf.zsh)
 
 # fzf: fuzzy finder (CTRL+r)
 [ -r /usr/share/fzf/key-bindings.zsh ] && source /usr/share/fzf/key-bindings.zsh
