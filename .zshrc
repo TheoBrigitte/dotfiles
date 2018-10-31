@@ -64,9 +64,11 @@ plugins=()
 # custom
 fpath=($HOME/.config/zsh/completion $fpath)
 HISTFILE=$HOME/.zsh_history
-HISTSIZE=1000
-SAVEHIST=1000
-setopt appendhistory extendedglob
+HISTSIZE=100000
+SAVEHIST=100000
+# Prevent duplicate entries from being saved to history.
+HISTCONTROL=ignoredups:ignorespace
+setopt extendedglob sharehistory
 unsetopt autocd
 bindkey -v
 
