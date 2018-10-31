@@ -122,7 +122,6 @@ compinit
 # prompt
 local blue='%{[1;34m%}'
 local red='%{[1;31m%}'
-local return_code="%(?.${blue}.%F{red})»%{$reset_color%}"
-PROMPT="${return_code} %F{white}[%*] ${blue}%n@%m:%1~%{$reset_color%} \$(kube_ps1)${blue}%(!.#.$)%f%{$reset_color%} "
+local c="%(?.${blue}.${red})"
+PROMPT="${blue}%1~%{$reset_color%} \$(kube_ps1)${c}%(!.#.$)%f%{$reset_color%} "
 
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
