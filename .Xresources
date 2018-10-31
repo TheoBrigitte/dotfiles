@@ -25,7 +25,7 @@
 *color15: #FFFFFF
 
 ! Xft
-Xft.dpi: 96
+!Xft.dpi: 96
 Xft.autohint: 0
 Xft.lcdfilter: lcddefault
 Xft.hintstyle: hintslight
@@ -83,8 +83,11 @@ URxvt*highlightTextColor: #E7EBED
 ! URxvt*borderColor: colour
 
 ! Select the fonts to be used. This is a comma separated list of font names that are checked in order when trying to find glyphs for characters. The first font defines the cell size for characters;
+! tip: use `fc-match FontName:parameter=value` to verify which font will be used given this name.
 URxvt*font: xft:Inconsolata:size=12:antialias=true
 URxvt*boldFont: xft:Inconsolata:bold:size=12:antialias=true
+!URxvt*font: xft:NotoSans:size=10:antialias=true
+!URxvt*boldFont: xft:NotoSansMono:bold:size=10:antialias=true
 
 ! Set scrollbar style to rxvt, plain, next or xterm. plain is the authors favourite.
 ! URxvt*scrollstyle: mode
