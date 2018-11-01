@@ -1,0 +1,16 @@
+!rofi
+rofi.display-drun:          >  
+rofi.modi:                 drun,run,window,ssh
+!rofi.opacity:              75
+rofi.lines:                3
+rofi.theme:                theme
+rofi.terminal:             termite
+!rofi.ssh-client:           ssh
+rofi.ssh-command:          {terminal} -e "{ssh-client} {host}"
+rofi.run:                  drun
+rofi.run-command:          {cmd}
+rofi.run-shell-command:    {terminal} -e {cmd}
+rofi.levenshtein-sort:     false
+rofi.case-sensitive:       false
+rofi.auto-select:          false
+rofi.parse-hosts:          false
