@@ -39,39 +39,57 @@ cursor_shape = ibeam
 # "off", "left" or "right"
 #scrollbar = off
 
+
 [colors]
-# If both of these are unset, cursor falls back to the foreground color,
-# and cursor_foreground falls back to the background color.
-#cursor = #dcdccc
-#cursor_foreground = #dcdccc
+# Base16 Material
+# Author: Nate Peterson
+# source: https://github.com/khamer/base16-termite/blob/master/themes/base16-material.config
 
-#foreground = #dcdccc
-#foreground_bold = #ffffff
-#background = #3f3f3f
+foreground          = #EEFFFF
+foreground_bold     = #EEFFFF
+cursor              = #EEFFFF
+cursor_foreground   = #263238
+background          = rgba(38, 50, 56)
 
-# 20% background transparency (requires a compositor)
-#background = rgba(63, 63, 63, 0.8)
+# 16 color space
 
-# If unset, will reverse foreground and background
-highlight = #2f2f2f
+# Black, Gray, Silver, White
+color0  = #263238
+color8  = #546E7A
+color7  = #EEFFFF
+color15 = #FFFFFF
 
-# Colors from color0 to color254 can be set
-color0 = #3f3f3f
-color1 = #705050
-color2 = #60b48a
-color3 = #dfaf8f
-color4 = #506070
-color5 = #dc8cc3
-color6 = #8cd0d3
-color7 = #dcdccc
-color8 = #709080
-color9 = #dca3a3
-color10 = #c3bf9f
-color11 = #f0dfaf
-color12 = #94bff3
-color13 = #ec93d3
-color14 = #93e0e3
-color15 = #ffffff
+# Red
+color1  = #F07178
+color9  = #F07178
+
+# Green
+color2  = #C3E88D
+color10 = #C3E88D
+
+# Yellow
+color3  = #FFCB6B
+color11 = #FFCB6B
+
+# Blue
+color4  = #82AAFF
+color12 = #82AAFF
+
+# Purple
+color5  = #C792EA
+color13 = #C792EA
+
+# Teal
+color6  = #89DDFF
+color14 = #89DDFF
+
+# Extra colors
+color16 = #F78C6C
+color17 = #FF5370
+color18 = #2E3C43
+color19 = #314549
+color20 = #B2CCD6
+color21 = #EEFFFF
 
 [hints]
 #font = Monospace 12
