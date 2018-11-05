@@ -110,16 +110,15 @@ bashcompinit
 compinit
 
 # common
-[ -r "$HOME/.config/bash/common" ] && source "$HOME/.config/bash/common"
+source "$HOME/.config/bash/common"
 
 # completion (broken ones only)
-[ -r "$HOME/.config/zsh/completion/_helm" ] && source "$HOME/.config/zsh/completion/_helm"
-([ -r "$HOME/.config/zsh/completion/_minikube" ] && source "$HOME/.config/zsh/completion/_minikube") ||
-	([ -f ~/.fzf.zsh ] && source ~/.fzf.zsh)
+trysource "$HOME/.config/zsh/completion/_helm"
+trysource "$HOME/.config/zsh/completion/_minikube"
 
 # fzf: fuzzy finder (CTRL+r)
-[ -r /usr/share/fzf/key-bindings.zsh ] && source /usr/share/fzf/key-bindings.zsh
-[ -r /usr/share/fzf/completion.zsh ] && source /usr/share/fzf/completion.zsh
+trysource "/usr/share/fzf/key-bindings.zsh"
+trysource "/usr/share/fzf/completion.zsh" "~/.fzf.zsh"
 
 # prompt
 local blue='%{[1;34m%}'

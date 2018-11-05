@@ -31,16 +31,15 @@ build_prompt() {
 [[ $- != *i* ]] && return
 
 # common
-[ -r "$HOME/.config/bash/common" ] && source "$HOME/.config/bash/common"
+source "$HOME/.config/bash/common"
 
 # completion
-[ -r /usr/share/bash-completion/bash_completion ] && source /usr/share/bash-completion/bash_completion
+trysource /usr/share/bash-completion/bash_completion
 
 # fzf: fuzzy finder (CTRL+r)
-[ -r /usr/share/fzf/key-bindings.bash ] && source /usr/share/fzf/key-bindings.bash
-[ -r /usr/share/fzf/completion.bash ] && source /usr/share/fzf/completion.bash
+trysource /usr/share/fzf/key-bindings.bash
+trysource /usr/share/fzf/completion.bash ~/.fzf.bash
 
 # prompt
 build_prompt
 
-[ -f ~/.fzf.bash ] && source ~/.fzf.bash

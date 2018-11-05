@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-_gi_get()
+_giget()
 {
 	local time=$(date +%s)
 	local cache_duration=86400
@@ -14,4 +14,4 @@ _gi_get()
 	COMPREPLY=( $(compgen -W "$(cat ${cache_file})" -- $cur) )
 }
 
-complete -F _gi_get gi-get
+complete -F _giget giget

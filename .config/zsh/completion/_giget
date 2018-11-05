@@ -1,6 +1,6 @@
-#compdef gi-get
+#compdef giget
 #
-_gi_get_cache_policy() {
+_giget_cache_policy() {
   local -a newer
   # rebuild if cache does not exist or is more than a week old
   newer=( "$1"(Nmd-1) )
@@ -15,7 +15,7 @@ _arguments '1: :->repos'
 case $state in
   repos)
     local cache_id=gi_gile
-    zstyle ":completion:${curcontext}:" cache-policy _gi_get_cache_policy
+    zstyle ":completion:${curcontext}:" cache-policy _giget_cache_policy
 
     declare -a template
     if _cache_invalid $cache_id || ! _retrieve_cache $cache_id; then
