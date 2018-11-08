@@ -1,17 +1,19 @@
+source "$HOME/.config/shell/functions"
+
 # ssh keys
 command -v keychain >/dev/null && \
   eval $(keychain --eval --quiet theo/id_rsa giantswarm/id_rsa)
 
 # aliases
-[ -r "$HOME/.config/bash/aliases" ] && source "$HOME/.config/bash/aliases"
-[ -r "$HOME/.config/bash/functions" ] && source "$HOME/.config/bash/functions"
+trysource "$HOME/.config/shell/aliases"
+#[ -r "$HOME/.config/shell/functions" ] && source "$HOME/.config/shell/functions"
 
 # azure-cli completion
-[ -r "$HOME/.local/lib/azure-cli/az.completion" ] && source "$HOME/.local/lib/azure-cli/az.completion"
+trysource "$HOME/.local/lib/azure-cli/az.completion"
 
 # kubernetes prompt
 KUBE_PS1_SYMBOL_ENABLE=false
-[ -r "$HOME/.config/bash/kube-ps1.sh" ] && source "$HOME/.config/bash/kube-ps1.sh"
+trysource "$HOME/.config/shell/kube-ps1.sh"
 
 # environment variables
 LOCAL_BIN="$HOME/.local/bin"

@@ -1,10 +1,7 @@
-# bash
 [[ "$OSTYPE" == "linux-gnu" ]] && LS_ARGS="--color=auto"
 [[ "$OSTYPE" == "darwin"* ]] && LS_ARGS="-G"
 alias ls="ls $LS_ARGS"
 alias ll='ls -lh'
-
-alias t='tmux'
 
 # irc
 alias irc='ssh -t theo@higgs screen -r irc'
@@ -34,10 +31,8 @@ alias gcountcommits="git shortlog -sn"
 alias gl='git log'
 alias gll='git log --decorate --graph --oneline'
 
-# giantswarm
-alias opsctl-ssh="opsctl ssh --machine-user giantswarm --cert-based"
 alias standup="vim +'normal G' +'r!date' +'normal o' +startinsert ~/standup.txt"
-alias todo="vim ~/src/github.com/giantswarm/TODO.md"
+alias todo="vim ~/TODO.md"
 
 # tmux
 alias tm="tmux new -s default"
