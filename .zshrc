@@ -77,6 +77,8 @@ source $ZSH/oh-my-zsh.sh
 setopt extendedglob sharehistory
 unsetopt autocd
 
+zstyle ':completion:*' rehash true
+
 # export MANPATH="/usr/local/man:$MANPATH"
 
 # You may need to manually set your language environment
