@@ -1,0 +1,155 @@
+#!/bin/bash
+
+set -u
+
+MY_ORG=giantswarm
+
+if [ $# -lt 2 ] || [ "$1" == "-h" ]; then
+	echo "Usage: $(basename $0) <installation> <email>
+Ensure the user is logged in the given <installation>.
+
+If the user does not exist it is created.
+Otherwise it will ask before deleting and creating a new user
+	(needed since this program do not know the password).
+Ensure the user is part of the '${MY_ORG}' organization.
+Login using gsctl."
+	exit 1
+fi
+
+INSTALLATION=$1
+MY_EMAIL=$2
+
+if [ -z ${INSTALLATION} ]; then
+	echo "missing installation"
+	exit 1
+fi
+if [ -z ${MY_EMAIL} ]; then
+	echo "missing email"
+	exit 1
+fi
+
+CURL=$(command -v curl)
+JQ=$(command -v jq)
+YQ=$(command -v yq)
+GSCTL=$(command -v gsctl)
+
+ADMIN_TOKEN=$(cat $HOME/secrets/giantswarm/g8s-admin-password)
+BASE_DOMAIN=$(${YQ} -r '.base|select( . != null)' ${REPOS}/installations/${INSTALLATION}/cluster.yaml)
+MY_PASSWORD=$(passwd-gen)
+REPOS=$HOME/src/github.com/giantswarm
+SUB_DOMAIN=$(${YQ} -r '.services.g8s.subDomain|select(. != null)' ${REPOS}/installations/${INSTALLATION}/cluster.yaml)
+if [ -z "${SUB_DOMAIN}" ]; then
+	if echo "${BASE_DOMAIN}" | grep -vq "g8s"; then
+		SUB_DOMAIN="g8s."
+	fi
+else
+	SUB_DOMAIN="${SUB_DOMAIN}."
+fi
+
+API_DOMAIN=$(${YQ} -r '.services.api.subDomain|select(. != null)' ${REPOS}/installations/${INSTALLATION}/cluster.yaml)
+if [ -z "${API_DOMAIN}" ]; then
+	API_DOMAIN="api"
+fi
+API_DOMAIN="${API_DOMAIN}."
+
+API_ENDPOINT="https://${API_DOMAIN}${SUB_DOMAIN}${BASE_DOMAIN}"
+
+TMP_FILE=$(mktemp)
+trap "rm -f $TMP_FILE" EXIT
+CURL_ARGS=(-s -o ${TMP_FILE} -H "Authorization: giantswarm $ADMIN_TOKEN" -w "%{http_code}")
+CREATE_USER=false
+
+function curl_fail() {
+	echo "status_code: $1"
+	cat $TMP_FILE
+	exit 1
+}
+
+echo -e "installation: ${INSTALLATION}
+endpoint: ${API_ENDPOINT}
+email: ${MY_EMAIL}
+org: ${MY_ORG}
+output: ${TMP_FILE}
+"
+
+# user exit ?
+echo "# Register in g8s api"
+echo -n "> is registered in g8s api: "
+RESULT=$(${CURL} "${CURL_ARGS[@]}" -X GET "${API_ENDPOINT}/v4/users/")
+if [ ${RESULT} -ne "200" ]; then
+	echo "failed"
+	curl_fail ${RESULT}
+fi
+
+if ! cat ${TMP_FILE} | grep --quiet ${MY_EMAIL}; then
+	echo "no"
+	CREATE_USER=true
+else
+	echo "yes"
+	read -p "> re-create user (Y/n) : " -n 1 REPLY
+	echo
+	if [[ "$REPLY" =~ ^(yes|y)$ ]]; then
+		CREATE_USER=true
+		# delete user
+		echo -n "> deleting: "
+		RESULT=$(${CURL} "${CURL_ARGS[@]}" -X DELETE "${API_ENDPOINT}/v4/users/${MY_EMAIL}/")
+		if [ "${RESULT}" -ne "200" ]; then
+			echo "failed"
+			curl_fail ${RESULT}
+		else
+			echo "ok"
+		fi
+	fi
+fi
+
+if ${CREATE_USER}; then
+	# create user
+	echo -n "> registering: "
+	RESULT=$(${CURL} "${CURL_ARGS[@]}" -X PUT "${API_ENDPOINT}/v4/users/${MY_EMAIL}/" \
+		-d "{\"password\": \"$(echo -n ${MY_PASSWORD} | base64 | tr -d "\n\r")\"}")
+	if [ "${RESULT}" -ne "201" ]; then
+		echo "failed"
+		curl_fail ${RESULT}
+	else
+		echo "ok, password :\n${MY_PASSWORD}"
+	fi
+fi
+echo
+
+echo "# Add to organization"
+echo -n "> is part of ${MY_ORG}: "
+RESULT=$(${CURL} "${CURL_ARGS[@]}" -X GET $API_ENDPOINT/v4/organizations/${MY_ORG}/)
+if [ ${RESULT} -ne "200" ]; then
+	echo "failed"
+	curl_fail ${RESULT}
+elif ! cat ${TMP_FILE} | grep --quiet ${MY_EMAIL}; then
+	echo "no"
+	echo -n "> adding: "
+	MEMBERS=$(cat ${TMP_FILE} | ${JQ} -jc '.members')
+	MEMBERS=$(echo ${MEMBERS} | ${JQ} -jc '.[.| length] |= . + {"email":"'"${MY_EMAIL}"'"}')
+
+	RESULT=$(${CURL} "${CURL_ARGS[@]}" -X PATCH $API_ENDPOINT/v4/organizations/${MY_ORG}/ \
+		-d "{\"members\": ${MEMBERS}}")
+	if [ "${RESULT}" -ne "200" ]; then
+		echo "failed"
+		curl_fail ${RESULT}
+	else
+		echo "ok"
+	fi
+else
+	echo "yes"
+fi
+echo
+
+echo "# Login with gsctl"
+echo -n "> can login: "
+if ${CREATE_USER}; then
+	echo "yes"
+	${GSCTL} login "${MY_EMAIL}" --endpoint ${API_ENDPOINT} -p"${MY_PASSWORD}"
+else
+	echo "no"
+fi
+
+echo
+echo "success"
+exit 0

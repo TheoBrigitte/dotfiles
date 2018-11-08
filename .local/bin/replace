@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+if [ $# -lt 3 ]; then
+	echo "Usage: replace <a> <b> <dir>
+Replace <a> with <b> for every file found in <dir>."
+	return
+fi
+
+local a=$1 
+shift
+local b=$1 
+shift
+local dir=$1 
+shift
+local a="${a//\//\\/}" 
+local b="${b//\//\\/}" 
+
+for file in $(find $dir \( -path ./.git -o -path ./vendor \)  -prune -o -type f -print); do
+	sed -i -e "s/${a}/${b}/g" $file
+done

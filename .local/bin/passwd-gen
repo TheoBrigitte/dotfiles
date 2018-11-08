@@ -1,0 +1,10 @@
+#!/bin/bash
+if [ "${1}" == "-h" ]; then
+  echo "Usage: $(basename $0) [ <length> ]
+Generate a password
+
+  <length>      password length in characters (default: 32)"
+  exit 0
+fi
+
+env LC_CTYPE=C tr -dc "a-zA-Z0-9-_\$\?=+" < /dev/urandom | head -c ${1:-32}

@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+if [ $# -lt 1 ]; then
+	echo "Usage: g8s_status <cluster>
+Stream the cluster status from the CRD"
+	return
+fi
+
+CRD=$(k get crd -o name | grep configs.provider.giantswarm.io) 
+PROVIDER_CRD=$(echo -n $CRD|cut -d/ -f2) 
+
+while true; do
+	kubectl -ndefault get $PROVIDER_CRD $1 -w -o json | jq '.status.cluster.conditions[]'
+done
