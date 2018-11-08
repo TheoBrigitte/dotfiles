@@ -111,7 +111,7 @@ bashcompinit
 compinit
 
 # common
-source "$HOME/.config/bash/common"
+source "$HOME/.config/shell/common"
 
 # completion (broken ones only)
 trysource "$HOME/.config/zsh/completion/_helm"
