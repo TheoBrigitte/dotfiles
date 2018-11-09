@@ -17,8 +17,11 @@ is_config_valid() {
   fi
 
   CLIENT_CRT=$(kubectl config view -o=go-template --template='{{range $_,$ctx:=.contexts}}{{if eq $ctx.name "'"$1"'"}}{{range $_,$user:=$.users}}{{if eq $user.name $ctx.context.user}}{{index $user.user "client-certificate"}}{{end}}{{end}}{{end}}{{end}}')
-  openssl x509 -in "${CLIENT_CRT}" -checkend 0 1>/dev/null
-  return $?
+  if ! openssl x509 -in "${CLIENT_CRT}" -checkend 0 &>/dev/null; then
+    return 1
+  fi
+
+  return 0
 }
 
 if [ $# -lt 1 ] || [ "$1" == "-h" ]; then
