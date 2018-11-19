@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+if [ -z "$1" ]; then
+  echo "Usage: $(basename $0) <pod-name>
+Display kubernetes pods metrics."
+  exit 1
+fi
+
+kubectl get pods.metrics.k8s.io -ojson|jq -SCr '[.items[]|select(.metadata.name|contains("'"$1"'"))|{key:.metadata.name, value:.containers[].usage}]|from_entries'
