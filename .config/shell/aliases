@@ -16,6 +16,7 @@ alias kx="kubectx"
 alias kns="kubens"
 alias koff="kubeoff -g"
 alias kon="kubeon -g"
+alias kc="kubectl config current-context"
 
 # git
 alias ga='git add'
