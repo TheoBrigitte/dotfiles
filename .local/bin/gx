@@ -4,10 +4,14 @@ set -eu
 
 print_usage() {
   echo "Usage:
-  $(basename $0) <installation> / <cluster name>
-  $(basename $0) <installation>   <cluster name>
+  $(basename $0) <installation> [ <separator> <cluster> ]
 
-Create kubeconfig for the given cluster."
+Create kubeconfig for the given cluster or installation.
+Also point gsctl to the given installation.
+
+  <installation>	installation name as given by \`opsctl list installations\`
+  <separator>		can be anything: space, slash, dash, sentence ...
+  <cluster>		cluster name as given by \`gsctl list clusters\`"
 }
 
 # verify that kubectl context is present and its client certificate is still valid.
@@ -24,39 +28,54 @@ is_config_valid() {
   return 0
 }
 
+wait_error() {
+  error=0
+  while [ -n "$(jobs -p)" ]; do
+    if ! wait -n; then
+      error=1
+    fi
+  done
+  return $error
+}
+
 if [ $# -lt 1 ] || [ "$1" == "-h" ]; then
   print_usage
   exit 0
 fi
 
 # replace / separator with space.
-args=$(echo -n "$@" | sed -e 's/\// /g')
+args=$(echo -n "$@" | sed -e 's/[^[:alnum:]]/ /g')
 
-# bash will split words on spaces.
+ # bash will split words on spaces.
 values=($args)
 
 INSTALLATION="${values[0]}"
 KUBE_CONTEXT="giantswarm-${values[0]}"
 
 if [ ${#values[@]} -ge 2 ]; then
-  CLUSTER="${values[1]}"
-  KUBE_CONTEXT="giantswarm-${values[1]}"
+  CLUSTER="${values[-1]}"
+  KUBE_CONTEXT="giantswarm-${values[-1]}"
 fi
 
+(
+  set -ex
+  gsctl select endpoint "${INSTALLATION}"
+)
 if ! is_config_valid "${KUBE_CONTEXT}"; then
   if [ -n "${CLUSTER+x}" ]; then
     (
-      set -x
-      gsctl select endpoint "${INSTALLATION}"
+      set -ex
       gsctl create kubeconfig --certificate-organizations system:masters --ttl 1d -c "${CLUSTER}"
-    )
+    )&
   else
     (
-      set -x
+      set -ex
       opsctl create kubeconfig --ttl 1 -c "${INSTALLATION}"
-    )
+      )&
   fi
-else
-  kubectl config use-context "${KUBE_CONTEXT}"
+
+  wait_error
 fi
+
+kubectl config use-context "${KUBE_CONTEXT}"
 
