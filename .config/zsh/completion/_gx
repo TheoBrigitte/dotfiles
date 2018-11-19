@@ -1,0 +1,20 @@
+#compdef gx
+
+_gx_list_installations() {
+    opsctl list installations -s|tr " " "\n"|sort
+}
+
+_gx_list_contexts() {
+    kubectl config get-contexts --output='name'|grep 'giantswarm-'|cut -d- -f2|sort
+}
+
+_gx_get_installations() {
+    comm -1 -2 <(_gx_list_contexts) <(_gx_list_installations)
+}
+
+_gx_get_clusters() {
+    comm -2 -3 <(_gx_list_contexts) <(_gx_list_installations)
+}
+
+_arguments "1: :($(_gx_list_installations))"\
+    "2: :($(_gx_get_clusters))"
