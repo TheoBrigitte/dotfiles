@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 
-if [ -z "$1" ]; then
+if [[ "$1" =~ "-h" ]]; then
   echo "Usage: $(basename $0) <pod-name>
 Display kubernetes pods metrics."
   exit 1
 fi
 
-kubectl get pods.metrics.k8s.io -ojson|jq -SCr '[.items[]|select(.metadata.name|contains("'"$1"'"))|{key:.metadata.name, value:.containers[].usage}]|from_entries'
+if [ -n "$1" ]; then
+  kubectl get --all-namespaces pods.metrics.k8s.io -ojson|jq -Sr '[.items[]|select(.metadata.name|contains("'"$1"'"))|{key:.metadata.name, value:.containers[].usage}]|from_entries'
+else
+  kubectl get --all-namespaces pods.metrics.k8s.io -ojson|jq -Sr '[.items[]|{name:.metadata.name, namespace:.metadata.namespace, value:.containers[].usage}]'|jq 'sort_by(.value.cpu|sub("[nu]$";"")|tonumber)'
+fi
