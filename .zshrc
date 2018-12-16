@@ -74,8 +74,7 @@ source $ZSH/oh-my-zsh.sh
 
 # User configuration
 
-setopt extendedglob sharehistory
-unsetopt autocd
+setopt autocd extendedglob sharehistory
 
 zstyle ':completion:*' rehash true
 
@@ -120,6 +119,8 @@ trysource "$HOME/.config/zsh/completion/_minikube"
 # fzf: fuzzy finder (CTRL+r)
 trysource "/usr/share/fzf/key-bindings.zsh"
 trysource "/usr/share/fzf/completion.zsh" "~/.fzf.zsh"
+
+cdpath=($HOME/src/github.com/giantswarm)
 
 # prompt
 local blue='%{[1;34m%}'
