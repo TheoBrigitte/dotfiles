@@ -18,3 +18,5 @@
 	insteadOf = https://github.com/
 [pager]
 	status = true
+[commit]
+	gpgSign = true
