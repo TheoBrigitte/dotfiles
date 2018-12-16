@@ -17,6 +17,13 @@ OPSCTL=$(command -v opsctl)
 BASE64=$(command -v base64)
 GPG=$(command -v gpg)
 DECRYPT="${GPG} -qd"
+DECODE=""
+
+if [[ "${OSTYPE}" ~= "linux" ]]; then
+	DECODE="${BASE64} -d"
+else
+	DECODE="${BASE64} -D"
+fi
 
 if [ -z ${INSTALLATION} ]; then
 	echo "missing installation"
