@@ -1,8 +1,7 @@
 source "$HOME/.config/shell/functions"
 
 # ssh keys
-command -v keychain >/dev/null && \
-  eval $(keychain --eval --quiet theo/id_rsa giantswarm/id_rsa)
+ssh-add -l &>/dev/null || ssh-add "$HOME/.ssh/theo/id_rsa" "$HOME/.ssh/giantswarm/id_rsa" &>/dev/null
 
 # aliases
 trysource "$HOME/.config/shell/aliases"
