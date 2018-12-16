@@ -11,38 +11,26 @@ fi
 INSTALLATION=$1
 GPG_USER=${2:-theo01}
 SSH_USER=${3:-theo}
-DECRYPT_METHOD="gpg"
 
 INSTALLATION=${GOPATH}/src/github.com/giantswarm/installations
 OPSCTL=$(command -v opsctl)
 BASE64=$(command -v base64)
-DECRYPT=""
+GPG=$(command -v gpg)
+DECRYPT="${GPG} -qd"
 
 if [ -z ${INSTALLATION} ]; then
 	echo "missing installation"
 	exit 1
 fi
 
-if [ "${DECRYPT_METHOD}" == "gpg" ]; then
-	GPG=$(command -v gpg)
-	DECRYPT="${GPG} -qd"
-elif [ "${DECRYPT_METHOD}" == "keybase" ]; then
-	KEYBASE=$(command -v keybase)
-	DECRYPT="${KEYBASE} pgp decrypt"
-else
-	echo "invalid decrypt method: ${DECRYPT_METHOD}"
-	exit 1
-fi
-
-echo "> decrypt ${GPG_USER} unseal-key for ${INSTALLATION} using ${DECRYPT_METHOD}"
 # Decrypt unseal-key from installation repo
-# cat installations/<codname>/unseal-keys/<user> | base64 -d
-# gpg -qd OR keybase pgp decrypt
+# base64 -d installations/<codname>/vault/unseal-keys/<user> | gpg -qd
+echo "> decrypt ${GPG_USER} unseal-key for ${INSTALLATION}"
 UNSEAL_KEY=$(${BASE64} -d ${INSTALLATION}/${INSTALLATION}/vault/unseal-keys/${GPG_USER} | ${DECRYPT})
 
-echo "> unseal ${INSTALLATION} using ${SSH_USER} user"
 # Unseal vault
 # opsctl ssh --cert-based=false --machine-user=theo <installation> vault1
 # vault operator unseal <unseal key>
+echo "> unseal ${INSTALLATION} using ${SSH_USER} user"
 opsctl ssh --cert-based=false --machine-user=${SSH_USER} ${INSTALLATION} vault1 --cmd "bash -lc 'vault operator unseal "${UNSEAL_KEY}"'"
 
