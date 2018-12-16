@@ -1,7 +1,6 @@
 [[ "$OSTYPE" == "linux-gnu" ]] && LS_ARGS="--color=auto"
 [[ "$OSTYPE" == "darwin"* ]] && LS_ARGS="-G"
 alias ls="ls $LS_ARGS"
-alias ll='ls -lh'
 
 command -pv open &>/dev/null || alias open='xdg-open'
 
@@ -38,6 +37,8 @@ alias gll='git log --decorate --graph --oneline'
 
 alias standup="vim +'normal G' +'r!date' +'normal o' +startinsert ~/standup.txt"
 alias todo="vim ~/TODO.md"
+
+alias ll='luigi --color|less -R'
 
 # tmux
 alias tm="tmux new -s default"
