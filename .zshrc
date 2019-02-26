@@ -120,7 +120,10 @@ trysource "$HOME/.config/zsh/completion/_minikube"
 trysource "/usr/share/fzf/key-bindings.zsh"
 trysource "/usr/share/fzf/completion.zsh" "~/.fzf.zsh"
 
-cdpath=($HOME/src/github.com/giantswarm)
+cdpath=(
+    $HOME/src/github.com/giantswarm
+    $HOME/src/github.com/TheoBrigitte
+)
 
 # prompt
 local blue='%{[1;34m%}'
