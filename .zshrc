@@ -118,7 +118,7 @@ trysource "$HOME/.config/zsh/completion/_minikube"
 
 # fzf: fuzzy finder (CTRL+r)
 trysource "/usr/share/fzf/key-bindings.zsh"
-trysource "/usr/share/fzf/completion.zsh" "~/.fzf.zsh"
+trysource "/usr/share/fzf/completion.zsh" "$HOME/.fzf.zsh"
 
 cdpath=($HOME/src/github.com/giantswarm)
 
