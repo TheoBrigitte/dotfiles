@@ -2,24 +2,26 @@
 
 set -eu
 
-if [ $# -lt 1 ] || [ "$1" == "-h" ]; then
-	echo "Usage: $(basename $0) <installation>
-Unseal vault node on the given <installation>"
+if [ $# -lt 2 ] || [ "$1" == "-h" ]; then
+	echo "Usage: $(basename $0) <installation> <action>
+	<installation>	installation to perform action on
+	<action>	action to perform (status or unseal)"
 	exit 1
 fi
 
 INSTALLATION=$1
-GPG_USER=${2:-theo01}
-SSH_USER=${3:-theo}
+ACTION=$2
+GPG_USER=${3:-theo01}
+SSH_USER=${4:-theo}
 
-INSTALLATION=${GOPATH}/src/github.com/giantswarm/installations
+INSTALLATION_REPOSITORY=${GOPATH}/src/github.com/giantswarm/installations
 OPSCTL=$(command -v opsctl)
 BASE64=$(command -v base64)
 GPG=$(command -v gpg)
 DECRYPT="${GPG} -qd"
 DECODE=""
 
-if [[ "${OSTYPE}" ~= "linux" ]]; then
+if [[ "${OSTYPE}" =~ "linux" ]]; then
 	DECODE="${BASE64} -d"
 else
 	DECODE="${BASE64} -D"
@@ -30,14 +32,21 @@ if [ -z ${INSTALLATION} ]; then
 	exit 1
 fi
 
-# Decrypt unseal-key from installation repo
-# base64 -d installations/<codname>/vault/unseal-keys/<user> | gpg -qd
-echo "> decrypt ${GPG_USER} unseal-key for ${INSTALLATION}"
-UNSEAL_KEY=$(${BASE64} -d ${INSTALLATION}/${INSTALLATION}/vault/unseal-keys/${GPG_USER} | ${DECRYPT})
+if [ "$ACTION" == "unseal" ]; then
+	# Decrypt unseal-key from installation repo
+	# base64 -d installations/<codname>/vault/unseal-keys/<user> | gpg -qd
+	echo "> decrypt ${GPG_USER} unseal-key for ${INSTALLATION}"
+	UNSEAL_KEY=$(${BASE64} -d ${INSTALLATION_REPOSITORY}/${INSTALLATION}/vault/unseal-keys/${GPG_USER} | ${DECRYPT})
 
-# Unseal vault
-# opsctl ssh --cert-based=false --machine-user=theo <installation> vault1
-# vault operator unseal <unseal key>
-echo "> unseal ${INSTALLATION} using ${SSH_USER} user"
-opsctl ssh --cert-based=false --machine-user=${SSH_USER} ${INSTALLATION} vault1 --cmd "bash -lc 'vault operator unseal "${UNSEAL_KEY}"'"
-
+	# Unseal vault
+	# opsctl ssh --cert-based=false --machine-user=theo <installation> vault1
+	# vault operator unseal <unseal key>
+	echo "> vault unseal ${INSTALLATION} using ${SSH_USER} user"
+	opsctl ssh --cert-based=false --machine-user=${SSH_USER} ${INSTALLATION} vault1 --cmd "bash -lc 'vault operator unseal "${UNSEAL_KEY}"'"
+elif [ "$ACTION" == "status" ]; then
+	echo "> vault status ${INSTALLATION} using ${SSH_USER} user"
+	opsctl ssh --cert-based=false --machine-user=${SSH_USER} ${INSTALLATION} vault1 --cmd "bash -lc 'vault status'"
+else
+	echo "> unknown action: $ACTION"
+	exit 1
+fi
