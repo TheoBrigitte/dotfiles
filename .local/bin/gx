@@ -16,7 +16,7 @@ Also point gsctl to the given installation.
 
 # verify that kubectl context is present and its client certificate is still valid.
 is_config_valid() {
-  if ! kubectl config get-contexts "$1" &>/dev/null; then
+  if ! kubeconfig_exists "$1"; then
     return 1
   fi
 
@@ -26,6 +26,18 @@ is_config_valid() {
   fi
 
   return 0
+}
+
+kubeconfig_exists() {
+  if kubectl config get-contexts "$1" &>/dev/null; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+is_installation() {
+  opsct list installation -s | grep -q "$1"
 }
 
 wait_error() {
@@ -61,6 +73,7 @@ fi
   set -ex
   gsctl select endpoint "${INSTALLATION}"
 )
+
 if ! is_config_valid "${KUBE_CONTEXT}"; then
   if [ -n "${CLUSTER+x}" ]; then
     (
