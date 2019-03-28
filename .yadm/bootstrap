@@ -10,6 +10,7 @@ function main() {
 
     install_packages
     install_oh_my_zsh
+    install_zsh_sync
     install_theo_tools
     install_giantswarm_tools
     install_completion
@@ -135,6 +136,11 @@ function install_oh_my_zsh() {
     else
         _printf "> oh-my-zsh installed in" "$HOME/.config/zsh/oh-my-zsh"
     fi
+}
+
+function install_zsh_sync() {
+    _printf "> install crontab for zsh history sync"
+    crontab "${SCRIPT_DIR}/zsh_sync_cronjob"
 }
 
 function install_theo_tools() {

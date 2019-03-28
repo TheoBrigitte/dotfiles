@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+echo "sync at $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+echo "local > remote"
+rsync --times --update --out-format="%n" ~/.zsh_history higgs.theo:.zsh_history
+echo "local < remote"
+rsync --times --update --out-format="%n" higgs.theo:.zsh_history ~/.zsh_history

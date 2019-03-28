@@ -1,0 +1,1 @@
+0 */6 * * * ~/.local/bin/sync_zsh_history &> /var/log/sync_zsh_history.log
