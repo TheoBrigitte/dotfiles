@@ -64,9 +64,10 @@ values=($args)
 INSTALLATION="${values[0]}"
 KUBE_CONTEXT="giantswarm-${values[0]}"
 
-if [ ${#values[@]} -ge 2 ]; then
-  CLUSTER="${values[-1]}"
-  KUBE_CONTEXT="giantswarm-${values[-1]}"
+values_length=${#values[@]}
+if [ $values_length -ge 2 ]; then
+  CLUSTER="${values[$values_length-1]}"
+  KUBE_CONTEXT="giantswarm-${values[$values_length-1]}"
 fi
 
 (
@@ -79,15 +80,13 @@ if ! is_config_valid "${KUBE_CONTEXT}"; then
     (
       set -ex
       gsctl create kubeconfig --certificate-organizations system:masters --ttl 1d -c "${CLUSTER}"
-    )&
+    )
   else
     (
       set -ex
       opsctl create kubeconfig --ttl 1 -c "${INSTALLATION}"
-      )&
+    )
   fi
-
-  wait_error
 fi
 
 kubectl config use-context "${KUBE_CONTEXT}"
