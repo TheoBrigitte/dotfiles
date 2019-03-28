@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
-echo "sync at $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-echo "local > remote"
-rsync --times --update --out-format="%n" ~/.zsh_history higgs.theo:.zsh_history
-echo "local < remote"
-rsync --times --update --out-format="%n" higgs.theo:.zsh_history ~/.zsh_history
+FILE=~/.zsh_history
+REMOTE=higgs.theo:.zsh_history
+RSYNC_ARGS="--times --update --out-format=%n"
+
+echo "> sync zsh_history at $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+echo "> local to remote"
+(
+  set -x
+  rsync ${RSYNC_ARGS} ${FILE} ${REMOTE}
+)
+echo "> remote to local"
+(
+  set -x
+  rsync ${RSYNC_ARGS} ${REMOTE} ${FILE}
+)
