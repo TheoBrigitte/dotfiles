@@ -1,0 +1,151 @@
+<?xml version='1.0' encoding='UTF-8'?><feed xmlns='http://www.w3.org/2005/Atom' xmlns:apps='http://schemas.google.com/apps/2006'>
+	<title>Mail Filters</title>
+	<id>tag:mail.google.com,2008:filters:1520453638297,1520454309131,1520454349354,1520454562732,1520455002227,1520462399137,1520518426836,1523130979759,1681913161409043325,2357243365867266064,8314455611329700040,z0000001553822669574*3669144727829753913</id>
+	<updated>2019-03-29T01:28:30Z</updated>
+	<author>
+		<name>Theo Brigitte</name>
+		<email>theo@giantswarm.io</email>
+	</author>
+	<entry>
+		<category term='filter'></category>
+		<title>Mail Filter</title>
+		<id>tag:mail.google.com,2008:filter:1520453638297</id>
+		<updated>2019-03-29T01:28:30Z</updated>
+		<content></content>
+		<apps:property name='hasTheWord' value='cc:your_activity@noreply.github.com'/>
+		<apps:property name='shouldMarkAsRead' value='true'/>
+		<apps:property name='shouldArchive' value='true'/>
+		<apps:property name='sizeOperator' value='s_sl'/>
+		<apps:property name='sizeUnit' value='s_smb'/>
+	</entry>
+	<entry>
+		<category term='filter'></category>
+		<title>Mail Filter</title>
+		<id>tag:mail.google.com,2008:filter:1520454309131</id>
+		<updated>2019-03-29T01:28:30Z</updated>
+		<content></content>
+		<apps:property name='hasTheWord' value='cc:mention@noreply.github.com'/>
+		<apps:property name='label' value='github/mention'/>
+		<apps:property name='shouldAlwaysMarkAsImportant' value='true'/>
+		<apps:property name='sizeOperator' value='s_sl'/>
+		<apps:property name='sizeUnit' value='s_smb'/>
+	</entry>
+	<entry>
+		<category term='filter'></category>
+		<title>Mail Filter</title>
+		<id>tag:mail.google.com,2008:filter:1520454349354</id>
+		<updated>2019-03-29T01:28:30Z</updated>
+		<content></content>
+		<apps:property name='hasTheWord' value='cc: assign@noreply.github.com'/>
+		<apps:property name='label' value='github/assign'/>
+		<apps:property name='shouldAlwaysMarkAsImportant' value='true'/>
+		<apps:property name='sizeOperator' value='s_sl'/>
+		<apps:property name='sizeUnit' value='s_smb'/>
+	</entry>
+	<entry>
+		<category term='filter'></category>
+		<title>Mail Filter</title>
+		<id>tag:mail.google.com,2008:filter:1520454562732</id>
+		<updated>2019-03-29T01:28:30Z</updated>
+		<content></content>
+		<apps:property name='hasTheWord' value='cc:review_requested@noreply.github.com'/>
+		<apps:property name='label' value='github/review'/>
+		<apps:property name='sizeOperator' value='s_sl'/>
+		<apps:property name='sizeUnit' value='s_smb'/>
+	</entry>
+	<entry>
+		<category term='filter'></category>
+		<title>Mail Filter</title>
+		<id>tag:mail.google.com,2008:filter:1520455002227</id>
+		<updated>2019-03-29T01:28:30Z</updated>
+		<content></content>
+		<apps:property name='hasTheWord' value='cc: author@noreply.github.com'/>
+		<apps:property name='label' value='github/author'/>
+		<apps:property name='shouldAlwaysMarkAsImportant' value='true'/>
+		<apps:property name='sizeOperator' value='s_sl'/>
+		<apps:property name='sizeUnit' value='s_smb'/>
+	</entry>
+	<entry>
+		<category term='filter'></category>
+		<title>Mail Filter</title>
+		<id>tag:mail.google.com,2008:filter:1520462399137</id>
+		<updated>2019-03-29T01:28:30Z</updated>
+		<content></content>
+		<apps:property name='hasTheWord' value='cc:team_mention@noreply.github.com'/>
+		<apps:property name='label' value='github/team'/>
+		<apps:property name='shouldAlwaysMarkAsImportant' value='true'/>
+		<apps:property name='sizeOperator' value='s_sl'/>
+		<apps:property name='sizeUnit' value='s_smb'/>
+	</entry>
+	<entry>
+		<category term='filter'></category>
+		<title>Mail Filter</title>
+		<id>tag:mail.google.com,2008:filter:1520518426836</id>
+		<updated>2019-03-29T01:28:30Z</updated>
+		<content></content>
+		<apps:property name='hasTheWord' value='cc:state_change@noreply.github.com'/>
+		<apps:property name='label' value='github/changed'/>
+		<apps:property name='sizeOperator' value='s_sl'/>
+		<apps:property name='sizeUnit' value='s_smb'/>
+	</entry>
+	<entry>
+		<category term='filter'></category>
+		<title>Mail Filter</title>
+		<id>tag:mail.google.com,2008:filter:1523130979759</id>
+		<updated>2019-03-29T01:28:30Z</updated>
+		<content></content>
+		<apps:property name='from' value='notifications@github.com'/>
+		<apps:property name='label' value='github'/>
+		<apps:property name='shouldArchive' value='true'/>
+		<apps:property name='shouldNeverSpam' value='true'/>
+		<apps:property name='sizeOperator' value='s_sl'/>
+		<apps:property name='sizeUnit' value='s_smb'/>
+	</entry>
+	<entry>
+		<category term='filter'></category>
+		<title>Mail Filter</title>
+		<id>tag:mail.google.com,2008:filter:1681913161409043325</id>
+		<updated>2019-03-29T01:28:30Z</updated>
+		<content></content>
+		<apps:property name='hasTheWord' value='cc:comment@noreply.github.com'/>
+		<apps:property name='label' value='github/comment'/>
+		<apps:property name='sizeOperator' value='s_sl'/>
+		<apps:property name='sizeUnit' value='s_smb'/>
+	</entry>
+	<entry>
+		<category term='filter'></category>
+		<title>Mail Filter</title>
+		<id>tag:mail.google.com,2008:filter:2357243365867266064</id>
+		<updated>2019-03-29T01:28:30Z</updated>
+		<content></content>
+		<apps:property name='from' value='builds@circleci.com'/>
+		<apps:property name='label' value='circleci'/>
+		<apps:property name='shouldArchive' value='true'/>
+		<apps:property name='sizeOperator' value='s_sl'/>
+		<apps:property name='sizeUnit' value='s_smb'/>
+	</entry>
+	<entry>
+		<category term='filter'></category>
+		<title>Mail Filter</title>
+		<id>tag:mail.google.com,2008:filter:8314455611329700040</id>
+		<updated>2019-03-29T01:28:30Z</updated>
+		<content></content>
+		<apps:property name='from' value='noreply@github.com'/>
+		<apps:property name='label' value='github/other'/>
+		<apps:property name='shouldArchive' value='true'/>
+		<apps:property name='sizeOperator' value='s_sl'/>
+		<apps:property name='sizeUnit' value='s_smb'/>
+	</entry>
+	<entry>
+		<category term='filter'></category>
+		<title>Mail Filter</title>
+		<id>tag:mail.google.com,2008:filter:z0000001553822669574*3669144727829753913</id>
+		<updated>2019-03-29T01:28:30Z</updated>
+		<content></content>
+		<apps:property name='from' value='notifications@github.com'/>
+		<apps:property name='hasTheWord' value='&quot;merged&quot; &quot;into master.&quot;'/>
+		<apps:property name='label' value='github/merged'/>
+		<apps:property name='sizeOperator' value='s_sl'/>
+		<apps:property name='sizeUnit' value='s_smb'/>
+	</entry>
+</feed>
