@@ -69,6 +69,7 @@ HISTSIZE=100000
 SAVEHIST=100000
 # Prevent duplicate entries from being saved to history.
 HISTCONTROL=ignoredups:ignorespace
+DISABLE_AUTO_UPDATE=true
 
 source $ZSH/oh-my-zsh.sh
 
