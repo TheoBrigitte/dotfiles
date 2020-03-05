@@ -131,7 +131,7 @@ cdpath=(
 )
 
 # prompt
-local blue='%{[1;34m%}'
+local blue='%{[1;36m%}'
 local red='%{[1;31m%}'
 local c="%(?.${blue}.${red})"
 PROMPT="${blue}%1~%{$reset_color%} \$(kube_ps1)${c}%(!.#.$)%f%{$reset_color%} "
