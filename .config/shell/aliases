@@ -9,17 +9,22 @@ alias irc='ssh -t theo@higgs screen -r irc'
 
 # kubectl
 alias k="kubectl"
-alias kb="kubectl -s http://kubemaster1-beta.erento.io:8080 --namespace beta"
-alias kp="kubectl -s http://kubemaster1-prod.erento.io:8080 --namespace production"
 alias kx="kubectx"
 alias kns="kubens"
 alias koff="kubeoff -g"
 alias kon="kubeon -g"
 alias kc="kubectl config current-context"
+alias kgp="kubectl get pods"
+alias kss="kns kube-system"
+
+# less
+alias ll='luigi --color|less -R'
+alias less='less -FX'
 
 # git
 alias ga='git add'
 alias gap='git add -p'
+alias gc='git commit'
 alias gam='git commit --amend'
 alias gamm='git commit --amend --no-edit'
 alias gco='git checkout'
@@ -34,11 +39,16 @@ alias gcountcommits="git shortlog -sn"
 #alias gcountlines='git ls-files -z | xargs -0n1 git blame -w | perl -n -e \'/^.*\((.*?)\s*[\d]{4}/; print $1,"\n"\' | sort -f | uniq -c | sort -n'
 alias gl='git log'
 alias gll='git log --decorate --graph --oneline'
+alias glp='git log -p'
+alias gls='gll --stat'
+alias gpf='gp -f'
 
+# go
+alias gob="go build -v -o /dev/null && echo OK"
+
+# text
 alias standup="vim +'normal G' +'r!date' +'normal o' +startinsert ~/standup.txt"
 alias todo="vim ~/TODO.md"
-
-alias ll='luigi --color|less -R'
 
 # tmux
 alias tm="tmux new -s default"
