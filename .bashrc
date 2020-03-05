@@ -12,19 +12,18 @@ build_prompt() {
 	local blue='\001\e[1;34m\002'
 	local red='\001\e[1;31m\002'
 	local reset='\001\e[00m\002'
+	exit_color=${blue}
 
 	exit_code() {
 		local ex=$?
 		local blue='\001\e[1;34m\002'
 		local red='\001\e[1;31m\002'
 		local reset='\001\e[00m\002'
-		local exit_color="${blue}"
 		[[ "$ex" -ne 0 ]] && exit_color="${red}"
-		printf "${exit_color}\uBB${reset}"
 	}
 
 	local date='[\D{%H:%M:%S}]'
-	PS1="\$(exit_code) ${date} ${blue}\u@\h:\W${reset} \$(kube_ps1)${blue}\$${reset} "
+	PS1="\$(exit_code)${blue}\u@\h:\W${reset} \$(kube_ps1)${exit_color}\$${reset} "
 }
 
 # If not running interactively, don't do anything
