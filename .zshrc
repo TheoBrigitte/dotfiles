@@ -61,6 +61,7 @@ CASE_SENSITIVE="true"
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
     gitfast
+    history-sync
 )
 
 fpath=($HOME/.config/zsh/completion $fpath)
