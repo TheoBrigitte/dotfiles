@@ -71,6 +71,7 @@ SAVEHIST=100000
 # Prevent duplicate entries from being saved to history.
 HISTCONTROL=ignoredups:ignorespace
 DISABLE_AUTO_UPDATE=true
+DISABLE_MAGIC_FUNCTIONS=true
 
 source $ZSH/oh-my-zsh.sh
 
