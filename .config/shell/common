@@ -21,6 +21,7 @@ export GOBIN="$GOPATH/bin"
 export PATH="$PATH:$LOCAL_BIN:$GOBIN"
 export EDITOR=vim
 export VISUAL=$EDITOR
+export GPG_TTY=$(tty)
 
 export FZF_DEFAULT_COMMAND='rg --files --no-ignore --hidden --follow --glob "!.git/*"'
 #export FZF_DEFAULT_COMMAND='rg --files --hidden'
