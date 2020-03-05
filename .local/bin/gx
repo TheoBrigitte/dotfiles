@@ -84,7 +84,7 @@ if ! is_config_valid "${KUBE_CONTEXT}"; then
   else
     (
       set -ex
-      opsctl create kubeconfig --ttl 1 -c "${INSTALLATION}"
+      opsctl create kubeconfig --ttl 1 -i "${INSTALLATION}"
     )
   fi
 fi

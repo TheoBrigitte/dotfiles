@@ -33,10 +33,10 @@ JQ=$(command -v jq)
 YQ=$(command -v yq)
 GSCTL=$(command -v gsctl)
 
+REPOS=$HOME/src/github.com/giantswarm
 ADMIN_TOKEN=$(cat $HOME/secrets/giantswarm/g8s-admin-password)
 BASE_DOMAIN=$(${YQ} -r '.base|select( . != null)' ${REPOS}/installations/${INSTALLATION}/cluster.yaml)
 MY_PASSWORD=$(passwd-gen)
-REPOS=$HOME/src/github.com/giantswarm
 SUB_DOMAIN=$(${YQ} -r '.services.g8s.subDomain|select(. != null)' ${REPOS}/installations/${INSTALLATION}/cluster.yaml)
 if [ -z "${SUB_DOMAIN}" ]; then
 	if echo "${BASE_DOMAIN}" | grep -vq "g8s"; then
@@ -75,7 +75,10 @@ output: ${TMP_FILE}
 # user exit ?
 echo "# Register in g8s api"
 echo -n "> is registered in g8s api: "
+(
+set -x
 RESULT=$(${CURL} "${CURL_ARGS[@]}" -X GET "${API_ENDPOINT}/v4/users/")
+)
 if [ ${RESULT} -ne "200" ]; then
 	echo "failed"
 	curl_fail ${RESULT}
