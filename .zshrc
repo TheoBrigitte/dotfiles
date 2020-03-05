@@ -126,6 +126,8 @@ trysource "/usr/share/fzf/completion.zsh" "$HOME/.fzf.zsh"
 cdpath=(
     $HOME/src/github.com/giantswarm
     $HOME/src/github.com/TheoBrigitte
+    $HOME/projects/giantswarm
+    $HOME
 )
 
 # prompt
