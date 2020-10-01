@@ -15,8 +15,17 @@
 [push]
 	default = upstream
 [url "git@github.com:"]
-	insteadOf = https://github.com/
+	insteadOf = https://github.com
 [pager]
 	status = true
 [commit]
 	gpgSign = true
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+[gpg]
+	program = gpg
+[pull]
+	rebase = false
