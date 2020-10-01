@@ -81,6 +81,9 @@ setopt autocd extendedglob sharehistory
 
 zstyle ':completion:*' rehash true
 
+# Do not expand #
+unsetopt EXTENDED_GLOB
+
 # export MANPATH="/usr/local/man:$MANPATH"
 
 # You may need to manually set your language environment
