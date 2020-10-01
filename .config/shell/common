@@ -22,6 +22,7 @@ export PATH="$GOBIN:$HOME/.cargo/bin:$LOCAL_BIN:$PATH"
 export EDITOR=vim
 export VISUAL=$EDITOR
 export GPG_TTY=$(tty)
+export TERM=xterm-256color
 
 export FZF_DEFAULT_COMMAND='fd --type file'
 #export FZF_DEFAULT_COMMAND='rg --files --no-ignore --hidden --follow --glob "!.git/*"'
