@@ -117,6 +117,9 @@ compinit
 
 # common
 source "$HOME/.config/shell/common"
+zstyle ':urlglobber' url-other-schema
+ZSH_HISTORY_PROJ="${HOME}/.zsh_history_sync"
+ZSH_HISTORY_FILE_ENC="${ZSH_HISTORY_PROJ}/${ZSH_HISTORY_FILE_ENC_NAME}"
 
 # completion (broken ones only)
 trysource "$HOME/.config/zsh/completion/_helm"
@@ -138,4 +141,3 @@ local blue='%{[1;36m%}'
 local red='%{[1;31m%}'
 local c="%(?.${blue}.${red})"
 PROMPT="${blue}%1~%{$reset_color%} \$(kube_ps1)${c}%(!.#.$)%f%{$reset_color%} "
-
