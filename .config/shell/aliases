@@ -17,10 +17,6 @@ alias kc="kubectl config current-context"
 alias kgp="kubectl get pods"
 alias kss="kns kube-system"
 
-# less
-alias ll='luigi --color|less -R'
-alias less='less -FX'
-
 # git
 alias ga='git add'
 alias gap='git add -p'
@@ -43,12 +39,16 @@ alias glp='git log -p'
 alias gls='gll --stat'
 alias gpf='gp -f'
 
-# go
-alias gob="go build -v -o /dev/null && echo OK"
-
 # text
 alias standup="vim +'normal G' +'r!date' +'normal o' +startinsert ~/standup.txt"
 alias todo="vim ~/TODO.md"
 
-# tmux
+# other
+alias ll='luigi --color|less -R'
+alias less='less -FX'
+alias gob="go build -v -o /dev/null && echo OK"
 alias tm="tmux new -s default"
+alias watch="watch "
+alias clip="xclip -sel clip -i"
+alias pmo='cd -P prometheus-meta-operator'
+alias vi='vim'
