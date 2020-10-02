@@ -1,0 +1,17 @@
+configuration {
+        modi: "drun,run,window,ssh";
+        lines: 3;
+        ssh-command: "{terminal} -e "{ssh-client} {host}"";
+        run-command: "{cmd}";
+        run-shell-command: "{terminal} -e {cmd}";
+        case-sensitive: false;
+        auto-select: false;
+        parse-hosts: false;
+        theme: "solarized_alternate";
+        theme: "glue_pro_blue";
+        theme: "Pop-Dark";
+        theme: "arthur";
+        theme: "slate";
+        show-icons: true;
+        display-drun: "launch";
+}
