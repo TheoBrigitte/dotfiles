@@ -16,6 +16,9 @@ alias kon="kubeon -g"
 alias kc="kubectl config current-context"
 alias kgp="kubectl get pods"
 alias kss="kns kube-system"
+alias kg='kubectl -n=giantswarm'
+alias ks='kubectl -n=kube-system'
+alias km='kubectl -n=monitoring'
 
 # git
 alias ga='git add'
