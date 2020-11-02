@@ -55,4 +55,5 @@ alias tm="tmux new -s default"
 alias watch="watch "
 alias clip="xclip -sel clip -i"
 alias pmo='cd -P prometheus-meta-operator'
-alias vi='vim'
+alias vi='nvim'
+alias vim='nvim'
