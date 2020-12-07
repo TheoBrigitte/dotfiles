@@ -23,7 +23,7 @@ alias km='kubectl -n=monitoring'
 # git
 alias ga='git add'
 alias gap='git add -p'
-alias gc='git commit'
+alias gc='git commit -a'
 alias gcm='git commit -m'
 alias gam='git commit --amend'
 alias gamm='git commit --amend --no-edit'
@@ -55,5 +55,7 @@ alias tm="tmux new -s default"
 alias watch="watch "
 alias clip="xclip -sel clip -i"
 alias pmo='cd -P prometheus-meta-operator'
-alias vi='nvim'
-alias vim='nvim'
+alias vpa='cd -P vertical-pod-autoscaler-app'
+alias gi='cd giantswarm'
+alias theo='cd $GOPATH/src/github.com/TheoBrigitte'
+alias glc='gsctl list clusters'
