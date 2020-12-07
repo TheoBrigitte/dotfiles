@@ -37,6 +37,7 @@ export FZF_DEFAULT_OPTS='
 export GITHUB_TOKEN=$(cat "$HOME/secrets/theo/github.com-token")
 export OPSCTL_GITHUB_TOKEN=$GITHUB_TOKEN
 export OPSCTL_OPSGENIE_TOKEN=$(cat "$HOME/secrets/giantswarm/opsgenie_token")
+export HEARTBEATCTL_TOKEN=$OPSCTL_OPSGENIE_TOKEN
 export OPSCTL_GPG_PASSWORD=$(cat "$HOME/secrets/giantswarm/gpg_password")
 
 export QT_STYLE_OVERRIDE=gtk
