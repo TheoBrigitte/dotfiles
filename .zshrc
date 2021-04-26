@@ -1,21 +1,8 @@
-# If you come from bash you might have to change your $PATH.
-# export PATH=$HOME/bin:/usr/local/bin:$PATH
+autoload -Uz +X bashcompinit compinit
+bashcompinit
+compinit
 
-# Path to your oh-my-zsh installation.
 export ZSH=$HOME/.config/zsh/oh-my-zsh
-
-# Set name of the theme to load. Optionally, if you set this to "random"
-# it'll load a random theme each time that oh-my-zsh is loaded.
-# See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
-ZSH_THEME="robbyrussell"
-# completion
-
-# Set list of themes to load
-# Setting this variable when ZSH_THEME=random
-# cause zsh load theme from this variable instead of
-# looking in ~/.oh-my-zsh/themes/
-# An empty array have no effect
-# ZSH_THEME_RANDOM_CANDIDATES=( "robbyrussell" "agnoster" )
 
 # Uncomment the following line to use case-sensitive completion.
 CASE_SENSITIVE="true"
@@ -59,10 +46,6 @@ CASE_SENSITIVE="true"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(
-    gitfast
-    history-sync
-)
 
 fpath=($HOME/.config/zsh/completion $fpath)
 HISTFILE=$HOME/.zsh_history
@@ -83,6 +66,7 @@ zstyle ':completion:*' rehash true
 
 # Do not expand #
 unsetopt EXTENDED_GLOB
+unsetopt nomatch
 
 # export MANPATH="/usr/local/man:$MANPATH"
 
@@ -111,10 +95,6 @@ unsetopt EXTENDED_GLOB
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-autoload -U +X bashcompinit compinit
-bashcompinit
-compinit
-
 # common
 source "$HOME/.config/shell/common"
 zstyle ':urlglobber' url-other-schema
@@ -122,18 +102,21 @@ ZSH_HISTORY_PROJ="${HOME}/.zsh_history_sync"
 ZSH_HISTORY_FILE_ENC="${ZSH_HISTORY_PROJ}/${ZSH_HISTORY_FILE_ENC_NAME}"
 
 # completion (broken ones only)
-trysource "$HOME/.config/zsh/completion/_helm"
-trysource "$HOME/.config/zsh/completion/_minikube"
+source "$HOME/.config/zsh/completion/_helm"
+source "$HOME/.config/zsh/completion/_minikube"
 
 # fzf: fuzzy finder (CTRL+r)
-trysource "/usr/share/fzf/key-bindings.zsh"
-trysource "/usr/share/fzf/completion.zsh" "$HOME/.fzf.zsh"
+source "/usr/share/fzf/key-bindings.zsh"
+source "/usr/share/fzf/completion.zsh"
+
+# autosuggestions
+source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 cdpath=(
     $HOME/src/github.com/giantswarm
     $HOME/src/github.com/TheoBrigitte
     $HOME/projects/giantswarm
-    $HOME
+    $HOME/projects
 )
 
 # prompt
