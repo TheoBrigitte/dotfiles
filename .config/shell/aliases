@@ -23,7 +23,7 @@ alias km='kubectl -n=monitoring'
 # git
 alias ga='git add'
 alias gap='git add -p'
-alias gc='git commit -a'
+alias gcam='git commit -a -m'
 alias gcm='git commit -m'
 alias gam='git commit --amend'
 alias gamm='git commit --amend --no-edit'
@@ -49,8 +49,8 @@ alias todo="vim ~/TODO.md"
 
 # other
 alias ll='luigi --color|less -R'
-alias less='less -FX'
-alias gob="go build -v -o /dev/null && echo OK"
+alias less='less -FXI'
+alias gok="go build && go test ./... && echo OK"
 alias tm="tmux new -s default"
 alias watch="watch "
 alias clip="xclip -sel clip -i"
@@ -59,3 +59,6 @@ alias vpa='cd -P vertical-pod-autoscaler-app'
 alias gi='cd giantswarm'
 alias theo='cd $GOPATH/src/github.com/TheoBrigitte'
 alias glc='gsctl list clusters'
+alias vi='nvim'
+alias vim='nvim'
+alias bl='kubectl neat | bat -lyaml'
