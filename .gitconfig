@@ -12,6 +12,7 @@
 [alias]
 	lg = log --graph --pretty=format:'%Cgreen%h%Creset -%Creset %s%C(yellow)%d %Cblue(%aN, %cr)%Creset' --abbrev-commit --date=relative
 	heir = log --all --graph --decorate --oneline --simplify-by-decoration
+	ancestor = !zsh -c 'diff --old-line-format='' --new-line-format='' <(git rev-list --first-parent "${1:-master}") <(git rev-list --first-parent "${2:-HEAD}") | head -1' -
 [push]
 	default = upstream
 [url "git@github.com:"]
