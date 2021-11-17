@@ -62,29 +62,29 @@ args=$(echo -n "$@" | sed -e 's/[^[:alnum:]]/ /g')
 values=($args)
 
 INSTALLATION="${values[0]}"
-KUBE_CONTEXT="giantswarm-${values[0]}"
+KUBE_CONTEXT="gs-${values[0]}"
 
 values_length=${#values[@]}
 if [ $values_length -ge 2 ]; then
   CLUSTER="${values[$values_length-1]}"
-  KUBE_CONTEXT="giantswarm-${values[$values_length-1]}"
+  KUBE_CONTEXT="gs-${values[$values_length-1]}"
 fi
 
 (
   set -ex
-  gsctl select endpoint "${INSTALLATION}"
+  kubectl gs login --certificate-ttl 24h
 )
 
 if ! is_config_valid "${KUBE_CONTEXT}"; then
   if [ -n "${CLUSTER+x}" ]; then
     (
       set -ex
-      gsctl create kubeconfig --certificate-organizations system:masters --ttl 1d -c "${CLUSTER}"
+      kubectl gs login --certificate-ttl 24h --certificate-group system:masters --organization giantswarm --workload-cluster "${CLUSTER}"
     )
   else
     (
       set -ex
-      opsctl create kubeconfig --ttl 1 -i "${INSTALLATION}"
+      opsctl create kubeconfig --sso -i "${INSTALLATION}"
     )
   fi
 fi
