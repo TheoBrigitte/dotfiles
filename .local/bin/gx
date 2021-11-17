@@ -7,48 +7,12 @@ print_usage() {
   $(basename $0) <installation> [ <separator> <cluster> ]
 
 Create kubeconfig for the given cluster or installation.
-Also point gsctl to the given installation.
 
-  <installation>	installation name as given by \`opsctl list installations\`
-  <separator>		can be anything: space, slash, dash, sentence ...
-  <cluster>		cluster name as given by \`gsctl list clusters\`"
+  <installation>	installation name
+  <separator>		can be any non alphanum character
+  <cluster>		cluster name"
 }
 
-# verify that kubectl context is present and its client certificate is still valid.
-is_config_valid() {
-  if ! kubeconfig_exists "$1"; then
-    return 1
-  fi
-
-  CLIENT_CRT=$(kubectl config view -o=go-template --template='{{range $_,$ctx:=.contexts}}{{if eq $ctx.name "'"$1"'"}}{{range $_,$user:=$.users}}{{if eq $user.name $ctx.context.user}}{{index $user.user "client-certificate"}}{{end}}{{end}}{{end}}{{end}}')
-  if ! openssl x509 -in "${CLIENT_CRT}" -checkend 0 &>/dev/null; then
-    return 1
-  fi
-
-  return 0
-}
-
-kubeconfig_exists() {
-  if kubectl config get-contexts "$1" &>/dev/null; then
-    return 0
-  else
-    return 1
-  fi
-}
-
-is_installation() {
-  opsct list installation -s | grep -q "$1"
-}
-
-wait_error() {
-  error=0
-  while [ -n "$(jobs -p)" ]; do
-    if ! wait -n; then
-      error=1
-    fi
-  done
-  return $error
-}
 
 if [ $# -lt 1 ] || [ "$1" == "-h" ]; then
   print_usage
@@ -62,32 +26,21 @@ args=$(echo -n "$@" | sed -e 's/[^[:alnum:]]/ /g')
 values=($args)
 
 INSTALLATION="${values[0]}"
-KUBE_CONTEXT="gs-${values[0]}"
 
 values_length=${#values[@]}
 if [ $values_length -ge 2 ]; then
   CLUSTER="${values[$values_length-1]}"
-  KUBE_CONTEXT="gs-${values[$values_length-1]}"
 fi
 
+
+if [ -n "${CLUSTER+x}" ]; then
 (
   set -ex
-  kubectl gs login --certificate-ttl 24h
+  kubectl gs login --certificate-ttl 24h --certificate-group "system:masters" --workload-cluster "${CLUSTER}"
 )
-
-if ! is_config_valid "${KUBE_CONTEXT}"; then
-  if [ -n "${CLUSTER+x}" ]; then
-    (
-      set -ex
-      kubectl gs login --certificate-ttl 24h --certificate-group system:masters --organization giantswarm --workload-cluster "${CLUSTER}"
-    )
-  else
-    (
-      set -ex
-      opsctl create kubeconfig --sso -i "${INSTALLATION}"
-    )
-  fi
+else
+(
+  set -ex
+  kubectl gs login --certificate-ttl 24h "${INSTALLATION}"
+)
 fi
-
-kubectl config use-context "${KUBE_CONTEXT}"
-
