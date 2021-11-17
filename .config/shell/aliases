@@ -42,6 +42,7 @@ alias gll='git log --decorate --graph --oneline'
 alias glp='git log -p'
 alias gls='gll --stat'
 alias gpf='gp -f'
+alias gds='git diff --stat $(git merge-base --fork-point origin/master)'
 
 # text
 alias standup="vim +'normal G' +'r!date' +'normal o' +startinsert ~/standup.txt"
