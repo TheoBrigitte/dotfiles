@@ -33,14 +33,38 @@ if [ $values_length -ge 2 ]; then
 fi
 
 
-if [ -n "${CLUSTER+x}" ]; then
-(
-  set -ex
-  kubectl gs login --certificate-ttl 24h --certificate-group "system:masters" --workload-cluster "${CLUSTER}"
-)
+provider=$(opsctl show installation -i puma | yq -r .Provider)
+
+if [ "$provider" = "kvm" ]; then
+  (
+    set -ex
+    opsctl create kubeconfig --ttl 1 -i "${INSTALLATION}"
+  )
+  (
+    set -ex
+    gsctl select endpoint "${INSTALLATION}"
+  )
+  if [ -n "${CLUSTER+x}" ]; then
+    (
+      set -ex
+      gsctl create kubeconfig --certificate-organizations system:masters --ttl 1d -c "${CLUSTER}"
+    )
+  fi
 else
-(
-  set -ex
-  kubectl gs login --certificate-ttl 24h "${INSTALLATION}"
-)
+  #(
+  #  set -ex
+  #  opsctl create kubeconfig --sso -i "${INSTALLATION}"
+  #)
+
+  if [ -n "${CLUSTER+x}" ]; then
+  (
+    set -ex
+    kubectl gs login --certificate-ttl 24h --certificate-group system:masters --insecure-namespace --workload-cluster "${CLUSTER}" "${INSTALLATION}"
+  )
+  else
+  (
+    set -ex
+    kubectl gs login --certificate-ttl 24h --cluster-admin "${INSTALLATION}"
+  )
+  fi
 fi
