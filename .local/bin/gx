@@ -33,7 +33,7 @@ if [ $values_length -ge 2 ]; then
 fi
 
 
-provider=$(opsctl show installation -i puma | yq -r .Provider)
+provider=$(opsctl show installation -i "${INSTALLATION}" | yq -r .Provider)
 
 if [ "$provider" = "kvm" ]; then
   (
