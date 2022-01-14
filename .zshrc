@@ -55,6 +55,7 @@ SAVEHIST=100000
 HISTCONTROL=ignoredups:ignorespace
 DISABLE_AUTO_UPDATE=true
 DISABLE_MAGIC_FUNCTIONS=true
+ZSH_DISABLE_COMPFIX=true
 
 source $ZSH/oh-my-zsh.sh
 
