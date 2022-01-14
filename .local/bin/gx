@@ -35,6 +35,13 @@ fi
 
 provider=$(opsctl show installation -i "${INSTALLATION}" | yq -r .Provider)
 
+if ! kubectl config get-contexts -oname|grep -q "gs-${INSTALLATION}"; then
+  (
+    set -ex
+    opsctl kgs login -i "${INSTALLATION}" 1>/dev/null
+  )
+fi
+
 if [ "$provider" = "kvm" ]; then
   (
     set -ex
