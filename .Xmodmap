@@ -1,5 +1,7 @@
 ! Set Caps Lock key to Escape
 !keycode 66 = Caps_Lock
 !keycode 9 = Escape
-remove Lock = Caps_Lock
-keysym Caps_Lock = Escape
+clear lock
+keycode 66 = Escape
+!add Lock = Escape
+!keysym Caps_Lock = Escape
