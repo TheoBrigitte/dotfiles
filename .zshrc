@@ -47,7 +47,7 @@ CASE_SENSITIVE="true"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 
-fpath=($HOME/.config/zsh/completion $fpath)
+fpath=($HOME/.config/zsh/completion /usr/local/share/zsh-completions $fpath)
 HISTFILE=$HOME/.zsh_history
 HISTSIZE=100000
 SAVEHIST=100000
