@@ -107,8 +107,14 @@ source "$HOME/.config/zsh/completion/_helm"
 source "$HOME/.config/zsh/completion/_minikube"
 
 # fzf: fuzzy finder (CTRL+r)
-source "/usr/share/fzf/key-bindings.zsh"
-source "/usr/share/fzf/completion.zsh"
+if [[ "$OSTYPE" == "linux-gnu" ]]; then
+	source "/usr/share/fzf/key-bindings.zsh"
+	source "/usr/share/fzf/completion.zsh"
+fi
+if [[ "$OSTYPE" == "darwin"* ]]; then
+	source "/usr/local/opt/fzf/shell/completion.zsh"
+	source "/usr/local/opt/fzf/shell/key-bindings.zsh"
+fi
 
 # autosuggestions
 #source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
