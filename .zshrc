@@ -117,7 +117,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 fi
 
 # autosuggestions
-#source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 cdpath=(
     $HOME/src/github.com/giantswarm
