@@ -19,59 +19,36 @@ if [ $# -lt 1 ] || [ "$1" == "-h" ]; then
   exit 0
 fi
 
+# Variables
+
+CONTEXT_PREFIX="gs-"
+
+# Arguments
+
 # replace / separator with space.
 args=$(echo -n "$@" | sed -e 's/[^[:alnum:]]/ /g')
 
- # bash will split words on spaces.
+# bash will split words on spaces.
 values=($args)
 
 INSTALLATION="${values[0]}"
+CLUSTER=""
+CONTEXT_NAME="${CONTEXT_PREFIX}${INSTALLATION}"
 
 values_length=${#values[@]}
 if [ $values_length -ge 2 ]; then
   CLUSTER="${values[$values_length-1]}"
+  CONTEXT_NAME="${CONTEXT_PREFIX}${INSTALLATION}-${CLUSTER}"
 fi
 
 
-provider=$(opsctl show installation -i "${INSTALLATION}" | yq -r .Provider)
-
-if ! kubectl config get-contexts -oname|grep -q "gs-${INSTALLATION}"; then
-  (
-    set -ex
-    opsctl kgs login -i "${INSTALLATION}" 1>/dev/null
-  )
+if kubectl config get-contexts -oname|grep -q "${CONTEXT_NAME}"; then
+	kubectl --request-timeout=3s --context "${CONTEXT_NAME}" get nodes 1>/dev/null && \
+		kubectx "${CONTEXT_NAME}" && \
+		exit 0
 fi
 
-if [ "$provider" = "kvm" ]; then
-  (
-    set -ex
-    opsctl create kubeconfig --ttl 1 -i "${INSTALLATION}"
-  )
-  (
-    set -ex
-    gsctl select endpoint "${INSTALLATION}"
-  )
-  if [ -n "${CLUSTER+x}" ]; then
-    (
-      set -ex
-      gsctl create kubeconfig --certificate-organizations system:masters --ttl 1d -c "${CLUSTER}"
-    )
-  fi
-else
-  #(
-  #  set -ex
-  #  opsctl create kubeconfig --sso -i "${INSTALLATION}"
-  #)
-
-  if [ -n "${CLUSTER+x}" ]; then
-  (
-    set -ex
-    kubectl gs login --certificate-ttl 24h --certificate-group system:masters --insecure-namespace --workload-cluster "${CLUSTER}" "${INSTALLATION}"
-  )
-  else
-  (
-    set -ex
-    kubectl gs login --certificate-ttl 24h --cluster-admin "${INSTALLATION}"
-  )
-  fi
-fi
+(
+  set -ex
+  opsctl login "${INSTALLATION}" "${CLUSTER}"
+)
