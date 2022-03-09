@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+set -eu
+
+# Variables
+ORGANIZATION="giantswarm"
+ADMIN='Employees' # Team who will be granted admin permissions.
+WRITER='bots'     # Team who will be granted write permissions.
+
+print_usage() {
+  echo "Usage:
+  $(basename $0) <name> [ <template> ]
+
+Create a github repository under the ${ORGANIZATION} organization.
+Configure settings and permissions.
+
+  <name>		repository name
+  <template>		template repository name"
+}
+
+
+if [ $# -lt 1 ] || [ "$1" == "-h" ]; then
+  print_usage
+  exit 0
+fi
+
+# Arguments
+NAME="$1"
+TEMPLATE="${2:-}"
+
+NAME="${ORGANIZATION}/${NAME}"
+test -n "${TEMPLATE}" && TEMPLATE="${ORGANIZATION}/${TEMPLATE}"
+
+echo -n "=> Creating ${NAME} repository"
+test -n "${TEMPLATE}" && echo -n " using ${TEMPLATE} template"
+echo ""
+
+args=(--public)
+test -n "${TEMPLATE}" &&\
+  args+=(--template "${TEMPLATE}")
+
+exit
+(
+  set -ex
+  gh repo create "${NAME}" \
+	${args[@]}
+
+  gh repo edit "${NAME}" \
+	--default-branch master \
+	--delete-branch-on-merge \
+	--enable-auto-merge \
+	--enable-squash-merge \
+	--enable-merge-commit=false \
+	--enable-rebase-merge=false \
+	--enable-projects=false \
+	--enable-issues=false \
+	--enable-wiki=false
+
+  gh api -X PUT "orgs/${ORGANIZATION}/teams/${ADMIN}/repos/${NAME}" -f permission='admin'
+
+  gh api -X PUT "orgs/${ORGANIZATION}/teams/${WRITER}/repos/${NAME}" -f permission='push'
+)
+
+echo "done"
