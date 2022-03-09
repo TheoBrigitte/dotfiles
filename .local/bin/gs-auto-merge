@@ -49,7 +49,7 @@ for u in $status_urls; do
   echo "=> processing $i/$found : ${repo}"
   result=$(gh api "$u/commits/teams-alignment-branch/status" --jq '.state')
   total_count=$(gh api "$u/commits/teams-alignment-branch/status" --jq '.total_count')
-  if [ "$result" == "success" ]; then
+  if [ "$result" == "success" ] || [ "$result" == "pending" ]; then
     approve_and_merge "$repo"
   elif [ "$total_count" == "0" ]; then
     echo "   no statuses found, trying with Github Checks instead"
