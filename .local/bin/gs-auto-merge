@@ -6,7 +6,7 @@ print_usage() {
   echo "Usage:
   $(basename $0) [ --dry-run ]
 
-Approve and merge PRs architectbot PRs
+Approve and merge architectbot PRs
 
   --dry-run        do not perform any changes."
 }
