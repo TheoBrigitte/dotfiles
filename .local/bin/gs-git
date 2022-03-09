@@ -39,7 +39,6 @@ args=(--public)
 test -n "${TEMPLATE}" &&\
   args+=(--template "${TEMPLATE}")
 
-exit
 (
   set -ex
   gh repo create "${NAME}" \
