@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+set -eu
+
+page=1
+items=100
+
+while true; do
+	echo "=> getting page $page"
+	result=$(curl -SsX GET --url "https://circleci.com/api/v1.1/user/repos/github?page=${page}&per-page=${items}" -H "Circle-Token: $CIRCLECI_TOKEN" | jq -r '.[].name')
+	if [ -z "$result" ]; then
+		exit
+	fi
+
+	total=$(echo "$result"|wc -l|tr -d ' ')
+	echo "   got $total results"
+	for project in $result; do
+		curl -SsX POST "https://circleci.com/api/v1.1/project/gh/giantswarm/$project/follow" -H "Circle-Token: $CIRCLECI_TOKEN" 1>/dev/null
+		echo "   following $project"
+	done
+
+	((page=page+1))
+done
