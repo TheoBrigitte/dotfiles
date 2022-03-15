@@ -41,6 +41,7 @@ export OPSCTL_OPSGENIE_TOKEN=$(cat "$HOME/secrets/giantswarm/opsgenie_token")
 export HEARTBEATCTL_TOKEN=$OPSCTL_OPSGENIE_TOKEN
 export OPSCTL_GPG_PASSWORD=$(cat "$HOME/secrets/giantswarm/gpg_password")
 export GRAFANA_API_KEY=$(cat "$HOME/secrets/giantswarm/grafana_key")
+export CIRCLECI_TOKEN=$(cat "$HOME/secrets/theo/circleci_token")
 
 #export QT_STYLE_OVERRIDE=gtk
 export QT_SELECT=qt5
