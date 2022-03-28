@@ -1,13 +1,3 @@
 giget() {
     go get -v -d github.com/giantswarm/$1
 }
-
-trysource() {
-    for var in "$@"; do
-        if [ -r "$var" ]; then
-            source "$var"
-            return
-        fi
-    done
-}
-

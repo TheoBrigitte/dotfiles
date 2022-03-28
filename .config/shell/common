@@ -4,15 +4,14 @@ source "$HOME/.config/shell/functions"
 ssh-add -l &>/dev/null || ssh-add "$HOME/.ssh/theo/id_rsa" "$HOME/.ssh/giantswarm/id_rsa" &>/dev/null
 
 # aliases
-trysource "$HOME/.config/shell/aliases"
-#[ -r "$HOME/.config/shell/functions" ] && source "$HOME/.config/shell/functions"
+source "$HOME/.config/shell/aliases"
 
 # azure-cli completion
-trysource "$HOME/.local/lib/azure-cli/az.completion"
+source "$HOME/.local/lib/azure-cli/az.completion"
 
 # kubernetes prompt
 KUBE_PS1_SYMBOL_ENABLE=false
-trysource "$HOME/.config/shell/kube-ps1.sh"
+source "$HOME/.config/shell/kube-ps1.sh"
 
 # environment variables
 LOCAL_BIN="$HOME/.local/bin"
