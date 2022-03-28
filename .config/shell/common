@@ -23,7 +23,7 @@ export VISUAL=$EDITOR
 export GPG_TTY=$(tty)
 export TERM=xterm-256color
 
-export FZF_DEFAULT_COMMAND='fd --type file'
+export FZF_DEFAULT_COMMAND='fd --type file --hidden --exclude .git'
 #export FZF_DEFAULT_COMMAND='rg --files --no-ignore --hidden --follow --glob "!.git/*"'
 #export FZF_DEFAULT_COMMAND='rg --files --hidden'
 #export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
