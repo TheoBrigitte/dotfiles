@@ -43,7 +43,7 @@ fi
 
 
 if kubectl config get-contexts -oname|grep -q "${CONTEXT_NAME}"; then
-	kubectl --request-timeout=3s --context "${CONTEXT_NAME}" get nodes >/dev/null && \
+	kubectl --request-timeout=3s --context "${CONTEXT_NAME}" get nodes &>/dev/null && \
 		kubectx "${CONTEXT_NAME}" && \
 		exit 0
 fi
