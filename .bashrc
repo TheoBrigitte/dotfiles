@@ -33,11 +33,11 @@ build_prompt() {
 source "$HOME/.config/shell/common"
 
 # completion
-trysource /usr/share/bash-completion/bash_completion
+source /usr/share/bash-completion/bash_completion
 
 # fzf: fuzzy finder (CTRL+r)
-trysource /usr/share/fzf/key-bindings.bash
-trysource /usr/share/fzf/completion.bash ~/.fzf.bash
+source /usr/share/fzf/key-bindings.bash
+source /usr/share/fzf/completion.bash ~/.fzf.bash
 
 # prompt
 build_prompt
