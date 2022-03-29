@@ -7,7 +7,8 @@ ssh-add -l &>/dev/null || ssh-add "$HOME/.ssh/theo/id_rsa" "$HOME/.ssh/giantswar
 source "$HOME/.config/shell/aliases"
 
 # azure-cli completion
-source "$HOME/.local/lib/azure-cli/az.completion"
+[ -f "$HOME/.local/lib/azure-cli/az.completion" ] &&\
+	source "$HOME/.local/lib/azure-cli/az.completion"
 
 # kubernetes prompt
 KUBE_PS1_SYMBOL_ENABLE=false
