@@ -102,10 +102,6 @@ zstyle ':urlglobber' url-other-schema
 ZSH_HISTORY_PROJ="${HOME}/.zsh_history_sync"
 ZSH_HISTORY_FILE_ENC="${ZSH_HISTORY_PROJ}/${ZSH_HISTORY_FILE_ENC_NAME}"
 
-# completion (broken ones only)
-source "$HOME/.config/zsh/completion/_helm"
-source "$HOME/.config/zsh/completion/_minikube"
-
 # fzf: fuzzy finder (CTRL+r)
 if [[ "$OSTYPE" == "linux-gnu" ]]; then
 	source "/usr/share/fzf/key-bindings.zsh"
