@@ -30,5 +30,3 @@
 	program = gpg
 [pull]
 	rebase = false
-[includeIf "gitdir:~/src/github.com/giantswarm/"]
-	path = ~/.config/git/giantswarm.inc
