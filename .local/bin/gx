@@ -48,7 +48,14 @@ if kubectl config get-contexts -oname|grep -q "${CONTEXT_NAME}"; then
 		exit 0
 fi
 
+if [ "${INSTALLATION}" == "hubble" ]; then
 (
-  set -ex
-  opsctl login "${INSTALLATION}" "${CLUSTER}"
+	set -ex
+	kubectl gs login https://api.hubble.thg.gigantic.io --cluster-admin $CLUSTER
 )
+else
+(
+	set -ex
+	opsctl login "${INSTALLATION}" "${CLUSTER}"
+)
+fi
