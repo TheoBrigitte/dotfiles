@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -eu
+
+if [ $# -eq 1 ]; then
+	VERSION="$1"
+else
+	VERSION=$(git ls-remote --tags --sort version:refname https://github.com/kubernetes/kubernetes.git|awk '{print $2}'|cut -d/ -f3|grep -E 'v([0-9]+\.){2}[0-9]+$'|fzf --tac)
+fi
+
+echo "> downloading kubectl ${VERSION} to ~/.local/bin/kubectl${VERSION}"
+install --mode=755 <(wget -q --show-progress -O- "https://dl.k8s.io/release/${VERSION}/bin/linux/amd64/kubectl") ~/.local/bin/kubectl${VERSION}
