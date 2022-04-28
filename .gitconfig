@@ -8,7 +8,7 @@
 	branch = auto
 [core]
 	editor = vim
-        pager = less -FX
+	pager = less -FX
 [alias]
 	lg = log --graph --pretty=format:'%Cgreen%h%Creset -%Creset %s%C(yellow)%d %Cblue(%aN, %cr)%Creset' --abbrev-commit --date=relative
 	heir = log --all --graph --decorate --oneline --simplify-by-decoration
