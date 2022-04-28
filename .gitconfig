@@ -19,6 +19,11 @@
 	insteadOf = https://github.com
 [pager]
 	status = true
+	# requires diff-highlight to be in $PATH
+	# example : cp /usr/share/git/diff-highlight/diff-highlight ~/.local/bin
+	log = diff-highlight | less -FX
+	show = diff-highlight | less -FX
+	diff = diff-highlight | less -FX
 [commit]
 	gpgSign = true
 [filter "lfs"]
