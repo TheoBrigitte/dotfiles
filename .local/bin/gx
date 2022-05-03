@@ -45,23 +45,7 @@ if [ -n "${CONTEXT_NAME}" ]; then
 		exit 0
 fi
 
-PROVIDER=$(opsctl show installation -i "${INSTALLATION}" | yq -r .Provider)
-if [ "${PROVIDER}" == "openstack" ]; then
-(
-	set -e
-	if [ -n "${CLUSTER}" ]; then
-		echo "/!\ cluster kubeconfig not supported on openstack installations"
-	fi
-	lpass show --notes "Shared-Team Rocket/CAPO\kubeconfigs/${INSTALLATION}.kubeconfig" > /tmp/${INSTALLATION}.kubeconfig
-	CONTEXT_NAME=$(kubectl --kubeconfig /tmp/${INSTALLATION}.kubeconfig config current-context)
-	KUBECONFIG=~/.kube/config:/tmp/${INSTALLATION}.kubeconfig kubectl config view --merge --flatten > /tmp/kube.config
-	mv --backup --suffix=.gx /tmp/kube.config ~/.kube/config
-	kubectx "${CONTEXT_NAME}"
-	#kubectl gs login https://api.hubble.thg.gigantic.io --cluster-admin $CLUSTER
-)
-else
 (
 	set -ex
 	opsctl login "${INSTALLATION}" "${CLUSTER}"
 )
-fi
