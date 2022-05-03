@@ -38,7 +38,7 @@ if [ $values_length -ge 2 ]; then
 fi
 
 
-CONTEXT_NAME=$(kubectl config get-contexts -oname | grep "${CONTEXT_MATCHER}" | head -n1)
+CONTEXT_NAME=$(kubectl config get-contexts -oname | grep "${CONTEXT_MATCHER}" | head -zn1)
 if [ -n "${CONTEXT_NAME}" ]; then
 	timeout 3s kubectl --context "${CONTEXT_NAME}" get nodes &>/dev/null && \
 		kubectx "${CONTEXT_NAME}" && \
