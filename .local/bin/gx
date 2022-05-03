@@ -19,10 +19,6 @@ if [ $# -lt 1 ] || [ "$1" == "-h" ]; then
   exit 0
 fi
 
-# Variables
-
-CONTEXT_PREFIX="gs-"
-
 # Arguments
 
 # replace / separator with space.
@@ -33,16 +29,17 @@ values=($args)
 
 INSTALLATION="${values[0]}"
 CLUSTER=""
-CONTEXT_NAME="${CONTEXT_PREFIX}${INSTALLATION}"
+CONTEXT_MATCHER="${INSTALLATION}"
 
 values_length=${#values[@]}
 if [ $values_length -ge 2 ]; then
   CLUSTER="${values[$values_length-1]}"
-  CONTEXT_NAME="${CONTEXT_PREFIX}${INSTALLATION}-${CLUSTER}"
+  CONTEXT_MATCHER="${INSTALLATION}-${CLUSTER}"
 fi
 
 
-if kubectl config get-contexts -oname|grep -q "${CONTEXT_NAME}"; then
+CONTEXT_NAME=$(kubectl config get-contexts -oname | grep "${CONTEXT_MATCHER}" | head -n1)
+if [ -n "${CONTEXT_NAME}" ]; then
 	timeout 3s kubectl --context "${CONTEXT_NAME}" get nodes &>/dev/null && \
 		kubectx "${CONTEXT_NAME}" && \
 		exit 0
