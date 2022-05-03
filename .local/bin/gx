@@ -49,6 +49,9 @@ PROVIDER=$(opsctl show installation -i "${INSTALLATION}" | yq -r .Provider)
 if [ "${PROVIDER}" == "openstack" ]; then
 (
 	set -e
+	if [ -n "${CLUSTER}" ]; then
+		echo "/!\ cluster kubeconfig not supported on openstack installations"
+	fi
 	lpass show --notes "Shared-Team Rocket/CAPO\kubeconfigs/${INSTALLATION}.kubeconfig" > /tmp/${INSTALLATION}.kubeconfig
 	CONTEXT_NAME=$(kubectl --kubeconfig /tmp/${INSTALLATION}.kubeconfig config current-context)
 	KUBECONFIG=~/.kube/config:/tmp/${INSTALLATION}.kubeconfig kubectl config view --merge --flatten > /tmp/kube.config
