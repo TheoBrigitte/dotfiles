@@ -1,0 +1,10 @@
+[Unit]
+Description=Turn off Power button led.
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bash -c '/usr/bin/echo 0 > /sys/class/leds/tpacpi::power/brightness'
+
+[Install]
+WantedBy=multi-user.target
