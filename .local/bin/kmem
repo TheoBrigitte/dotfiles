@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+label_selector=${1:--lprometheus}
+echo "$label_selector"
+
+# Get pod data
+cmd="kubectl get po $label_selector -oyaml"
+echo "> run: $cmd" 1>&2
+pod=$($cmd)
+pod_resources_limits=$(echo "$pod" | yq -y -r '.items[0]|(.spec.containers[]|select(.name == "prometheus")|.resources.limits)')
+node_name=$(echo "$pod" | \
+	yq -r '.items[0].spec.nodeName')
+
+# Get node data
+cmd="kubectl get no $node_name -oyaml"
+echo "> run: $cmd" 1>&2
+node=$($cmd)
+node_resources_allocatable=$(echo "$node" | yq -y -r .status.allocatable)
+
+# Print informations
+echo "> pod resources limit"
+echo "$pod_resources_limits"
+echo
+
+echo "> node resources allocatable"
+echo "$node_resources_allocatable"
+echo
+
+pod_memory=$(echo "$pod_resources_limits" | yq -r .memory | numfmt --to=si --from=auto)
+node_memory=$(echo "$node_resources_allocatable" | yq -r .memory | numfmt --to=si --from=auto)
+echo "> memory comparison"
+echo "pod:  $pod_memory"
+echo "node: $node_memory"
