@@ -1,15 +1,28 @@
 #!/usr/bin/env bash
 
+function cpuformat () {
+	local cpu="$1"
+	grep -qE '[[:digit:]]$' <<<"$cpu" && cpu="$(($cpu * 1000))" || cpu="${cpu::-1}"
+	cpu="$(numfmt --grouping $cpu)m"
+	echo "$cpu"
+}
+
 label_selector=${1:--lprometheus}
-echo "$label_selector"
 
 # Get pod data
 cmd="kubectl get po $label_selector -oyaml"
 echo "> run: $cmd" 1>&2
 pod=$($cmd)
 pod_resources_limits=$(echo "$pod" | yq -y -r '.items[0]|(.spec.containers[]|select(.name == "prometheus")|.resources.limits)')
+pod_resources_requests=$(echo "$pod" | yq -y -r '.items[0]|(.spec.containers[]|select(.name == "prometheus")|.resources.requests)')
 node_name=$(echo "$pod" | \
 	yq -r '.items[0].spec.nodeName')
+
+# Get vpa data
+cmd="kubectl get vpa prometheus -oyaml"
+echo "> run: $cmd" 1>&2
+vpa=$($cmd)
+vpa_max=$(echo "$vpa" | yq -y -r '.spec.resourcePolicy.containerPolicies[]|select(.containerName == "prometheus").maxAllowed')
 
 # Get node data
 cmd="kubectl get no $node_name -oyaml"
@@ -18,16 +31,43 @@ node=$($cmd)
 node_resources_allocatable=$(echo "$node" | yq -y -r .status.allocatable)
 
 # Print informations
+echo
+echo "> pod resources request"
+echo "$pod_resources_requests"
+echo
+
 echo "> pod resources limit"
 echo "$pod_resources_limits"
+echo
+
+echo "> vpa maxAllowed"
+echo "$vpa_max"
 echo
 
 echo "> node resources allocatable"
 echo "$node_resources_allocatable"
 echo
 
-pod_memory=$(echo "$pod_resources_limits" | yq -r .memory | numfmt --to=si --from=auto)
+pod_cpu_requests=$(echo "$pod_resources_requests" | yq -r .cpu)
+pod_cpu_limits=$(echo "$pod_resources_limits" | yq -r .cpu)
+node_cpu=$(echo "$node_resources_allocatable" | yq -r .cpu)
+vpa_cpu_max=$(echo "$vpa_max" | yq -r .cpu)
+# convert all cpu values to millicpu (see https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#meaning-of-cpu)
+pod_cpu_limits=$(cpuformat $pod_cpu_limits)
+pod_cpu_requests=$(cpuformat $pod_cpu_requests)
+node_cpu=$(cpuformat $node_cpu)
+vpa_cpu_max=$(cpuformat $vpa_cpu_max)
+echo "> cpu comparison"
+echo "pod:  $pod_cpu_requests (request) / $pod_cpu_limits (limit)"
+echo "vpa:  $vpa_cpu_max"
+echo "node: $node_cpu"
+echo
+
+pod_memory_requests=$(echo "$pod_resources_requests" | yq -r .memory | numfmt --to=si --from=auto)
+pod_memory_limits=$(echo "$pod_resources_limits" | yq -r .memory | numfmt --to=si --from=auto)
 node_memory=$(echo "$node_resources_allocatable" | yq -r .memory | numfmt --to=si --from=auto)
+vpa_memory_max=$(echo "$vpa_max" | yq -r .memory | numfmt --to=si --from=auto)
 echo "> memory comparison"
-echo "pod:  $pod_memory"
+echo "pod:  $pod_memory_requests (request) / $pod_memory_limits (limit)"
+echo "vpa:  $vpa_memory_max"
 echo "node: $node_memory"
