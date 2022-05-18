@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+
+set -eu
+
+print_usage() {
+  echo "Usage:
+  $(basename $0) [ status [ <name> ] ]
+  $(basename $0) on|off [ <name> ]
+  $(basename $0) help
+
+Manage vpn connections
+
+  <name>		name of the vpn connection"
+}
+
+get_connections() {
+	CONNECTIONS=""
+	if [[ -z "${CONNECTION_PREFIX}" ]]; then
+		CONNECTIONS=$(nmcli connection | grep "${CONNECTION_SUFFIX}" | sort -r | awk '{print $1}')
+	else
+		CONNECTIONS="${CONNECTION_PREFIX}${CONNECTION_SUFFIX}"
+	fi
+
+	if [ -z ${1+x} ]; then
+		echo "$CONNECTIONS"
+	else
+		echo "$CONNECTIONS" | head -n $1
+	fi
+}
+
+# Arguments
+ACTION=${1:-status}
+CONNECTION_PREFIX=${2:-}
+CONNECTION_SUFFIX=".giantswarm"
+
+if [ "${ACTION}" == "status" ]; then
+	CONNECTIONS=$(get_connections)
+
+	for connection in ${CONNECTIONS}; do
+		status=$(nmcli -f GENERAL.STATE connection show "${connection}" | grep -q 'activated' && echo 'on' || echo 'off')
+		echo "> status ${connection} ${status}"
+	done
+
+	exit 0
+fi
+
+if [ "${ACTION}" == "on" ]; then
+	CONNECTION=$(get_connections 1)
+
+	echo "> enable ${CONNECTION}"
+	nmcli connection up "${CONNECTION}"
+	
+	exit 0
+fi
+
+if [ "${ACTION}" == "off" ]; then
+	CONNECTION=$(get_connections 1)
+
+	echo "> disable ${CONNECTION}"
+	nmcli connection down "${CONNECTION}"
+	
+	exit 0
+fi
+
+print_usage
+
+test "${ACTION}" == "help"
+exit $?
