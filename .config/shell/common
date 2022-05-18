@@ -11,7 +11,8 @@ source "$HOME/.config/shell/aliases"
 	source "$HOME/.local/lib/azure-cli/az.completion"
 
 # kubernetes prompt
-KUBE_PS1_SYMBOL_ENABLE=false
+export KUBE_PS1_SYMBOL_ENABLE=false
+export KUBE_TMUX_SYMBOL_ENABLE=false
 source "$HOME/.config/shell/kube-ps1.sh"
 
 # environment variables
