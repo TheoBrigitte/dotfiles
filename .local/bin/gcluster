@@ -1,8 +1,49 @@
 #!/usr/bin/env bash
 
-action="$1"
+get_installation() {
+	interactive=${1:-false}
 
-if [[ "$action" == "-h" ]] || [[ $# -lt 1 ]]; then
+	if $interactive; then
+		name=$(opsctl list installations -s | tr ' ' '\n'|fzf --tac)
+		gx "$name" &>/dev/null
+	fi
+
+	installation=$(kubectl config current-context | cut -d- -f2-)
+
+	echo "$installation"
+	return
+}
+
+get_release() {
+	interactive=${1:-false}
+
+	releases=$(kubectl get release --sort-by .spec.date -oyaml)
+	len=$(echo "$releases" | yq -r '.items | length')
+	release_candidates=()
+	for (( i=$len-1; i>=0; i-- )); do
+		name=$(echo "$releases" | yq -r ".items[$i].metadata.name")
+		state=$(echo "$releases" | yq -r ".items[$i].spec.state")
+		ready=$(echo "$releases" | yq -r ".items[$i].status.ready")
+		#echo -e "> name  : $name\n  active: $state\n  ready : $ready"
+		if echo "$name" | grep -vq "-" && [[ "$state" == "active" ]] && [[ "$ready" == "true" ]]; then
+			if $interactive; then
+				release_candidates+=("$name")
+			else
+				echo "$name"
+				return
+			fi
+		fi
+	done
+
+	if $interactive && [[ ${#release_candidates[@]} -gt 0 ]]; then
+		name=$(printf '%s\n' "${release_candidates[@]}" | fzf)
+		echo "$name"
+	fi
+
+	return
+}
+
+if [[ "$1" == "-h" ]] || [[ $# -lt 1 ]]; then
 	echo "Usage: gcluster <action> <name>
 
 Manage giantswarm CAPI clusters.
@@ -12,11 +53,34 @@ Manage giantswarm CAPI clusters.
         exit 1
 fi
 
-cluster_name=${2:-$USER}
+if [[ $# -ge 3 ]]; then
+	option="$1"
+	action="$2"
+	cluster_name=${3:-$USER}
+else
+	action="$1"
+	cluster_name=${2:-$USER}
+fi
+
+interactive=false
+if [[ "$option" == "-i" ]]; then
+	interactive=true
+fi
+
 echo "> name: $cluster_name"
 
 echo -n "> installation: "
-installation=$(kubectl config current-context | cut -d- -f2)
+installation=$(get_installation $interactive)
+if [[ -z "$installation" ]]; then
+	echo "not found!"
+	echo "> stopping"
+	exit 0
+fi
+if echo "$installation" | grep -q '-'; then
+	echo "$installation - invalid!"
+	echo "> stopping"
+	exit 0
+fi
 echo "$installation"
 
 echo -n "> provider: "
@@ -24,25 +88,12 @@ provider=$(opsctl show installation -i "$installation" | yq -r .Provider)
 echo "$provider"
 
 echo -n "> release: "
-releases=$(kubectl get release --sort-by .spec.date -oyaml)
-len=$(echo "$releases" | yq -r '.items | length')
-for (( i=$len-1; i>=0; i-- )); do
-	name=$(echo "$releases" | yq -r ".items[$i].metadata.name")
-	state=$(echo "$releases" | yq -r ".items[$i].spec.state")
-	ready=$(echo "$releases" | yq -r ".items[$i].status.ready")
-	#echo -e "> name  : $name\n  active: $state\n  ready : $ready"
-	if echo "$name" | grep -vq "-" && [[ "$state" == "active" ]] && [[ "$ready" == "true" ]]; then
-		release="$name"
-		break
-	fi
-done
-
+release=$(get_release $interactive)
 if [[ -z "$release" ]]; then
 	echo "not found!"
 	echo "> stopping"
 	exit 0
 fi
-
 echo "$release"
 
 echo -n "> availability zone: "
