@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+
+action="$1"
+
+if [[ "$action" == "-h" ]] || [[ $# -lt 1 ]]; then
+	echo "Usage: gcluster <action> <name>
+
+Manage giantswarm CAPI clusters.
+
+        <action> : any valid kubectl verb (e.g. apply)
+	<name>   : cluster name"
+        exit 1
+fi
+
+cluster_name=${2:-$USER}
+echo "> name: $cluster_name"
+
+echo -n "> installation: "
+installation=$(kubectl config current-context | cut -d- -f2)
+echo "$installation"
+
+echo -n "> provider: "
+provider=$(opsctl show installation -i "$installation" | yq -r .Provider)
+echo "$provider"
+
+echo -n "> release: "
+releases=$(kubectl get release --sort-by .spec.date -oyaml)
+len=$(echo "$releases" | yq -r '.items | length')
+for (( i=$len-1; i>=0; i-- )); do
+	name=$(echo "$releases" | yq -r ".items[$i].metadata.name")
+	state=$(echo "$releases" | yq -r ".items[$i].spec.state")
+	ready=$(echo "$releases" | yq -r ".items[$i].status.ready")
+	#echo -e "> name  : $name\n  active: $state\n  ready : $ready"
+	if echo "$name" | grep -vq "-" && [[ "$state" == "active" ]] && [[ "$ready" == "true" ]]; then
+		release="$name"
+		break
+	fi
+done
+
+if [[ -z "$release" ]]; then
+	echo "not found!"
+	echo "> stopping"
+	exit 0
+fi
+
+echo "$release"
+
+echo -n "> availability zone: "
+zone=$(kubectl get node -oyaml | yq -r '.items[0].metadata.labels["topology.kubernetes.io/zone"]')
+if [[ -z "$zone" ]] || [[ "$zone" == "null" ]]; then
+	echo "not found!"
+	echo "> stopping"
+	exit 0
+fi
+echo "$zone"
+
+set -ex
+kubectl gs template cluster \
+	--provider "$provider" \
+	--release "$release" \
+	--name "$cluster_name" \
+	--organization giantswarm \
+	--description "$cluster_name test cluster" \
+	| kubectl $action -f -
+
+kubectl-gs template nodepool --provider "$provider" \
+	--release "$release" \
+	--cluster-name "$cluster_name" \
+	--availability-zones "$zone" \
+	--organization giantswarm \
+	--description "$cluster_name nodepool" \
+	| kubectl $action -f -
+set +x
+
+echo "> success"
