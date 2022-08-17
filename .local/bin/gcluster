@@ -25,7 +25,7 @@ get_release() {
 		state=$(echo "$releases" | yq -r ".items[$i].spec.state")
 		ready=$(echo "$releases" | yq -r ".items[$i].status.ready")
 		#echo -e "> name  : $name\n  active: $state\n  ready : $ready"
-		if echo "$name" | grep -vq "-" && [[ "$state" == "active" ]] && [[ "$ready" == "true" ]]; then
+		if echo "$name" | grep -vq "-" && [[ "$ready" == "true" ]]; then
 			if $interactive; then
 				release_candidates+=("$name")
 			else
