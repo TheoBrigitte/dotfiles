@@ -19,6 +19,7 @@ alias kss="kns kube-system"
 alias kg='kubectl -n=giantswarm'
 alias ks='kubectl -n=kube-system'
 alias km='kubectl -n=monitoring'
+alias kd='kubectl -n=default'
 alias kv='ln -fsv $(ls -1 ~/.local/bin/kubectlv*|fzf) ~/.local/bin/kubectl'
 
 # git
