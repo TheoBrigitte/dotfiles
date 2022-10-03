@@ -113,6 +113,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 fi
 
 # autosuggestions
+export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#777777"
 if [ -f /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh ]; then
 	source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 else
