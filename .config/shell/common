@@ -1,7 +1,7 @@
 source "$HOME/.config/shell/functions"
 
 # ssh keys
-ssh-add -l &>/dev/null || ssh-add "$HOME/.ssh/theo/id_rsa" "$HOME/.ssh/giantswarm/id_rsa" &>/dev/null
+ssh-add -l &>/dev/null || ssh-add "$HOME/.ssh/theo/theo_rsa" "$HOME/.ssh/giantswarm/giantswarm_rsa" &>/dev/null
 
 # aliases
 source "$HOME/.config/shell/aliases"
