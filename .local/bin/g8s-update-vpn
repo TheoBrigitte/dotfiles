@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+USER=theo
+
+(
+	set -x
+	scp -P 2222 "${USER}@vpn.giantswarm.io:${USER}.ovpn" ~/secrets/giantswarm/vpn.giantswarm.conf
+	scp -P 2222 "${USER}@vpn2.giantswarm.io:${USER}.ovpn" ~/secrets/giantswarm/vpn2.giantswarm.conf
+)
+
+echo
+echo "> giantswarm vpn config updated successfully"
+echo "> note: do not forget to update push changes from ~/secrets repository"
