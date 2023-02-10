@@ -44,9 +44,14 @@ get_release() {
 }
 
 if [[ "$1" == "-h" ]] || [[ $# -lt 1 ]]; then
-	echo "Usage: gcluster <action> <name>
+	echo "Usage: gcluster [options] <action> <name>
 
 Manage giantswarm CAPI clusters.
+
+Options
+        -i        interactive mode (select release)
+
+Arguments
 
         <action> : any valid kubectl verb (e.g. apply)
 	<name>   : cluster name"
