@@ -6,6 +6,7 @@ print_usage() {
   echo "Usage:
   $(basename $0) [ status [ <name> ] ]
   $(basename $0) on|off [ <name> ]
+  $(basename $0) update-config
   $(basename $0) help
 
 Manage vpn connections
@@ -58,6 +59,23 @@ if [ "${ACTION}" == "off" ]; then
 
 	echo "> disable ${CONNECTION}"
 	nmcli connection down "${CONNECTION}"
+	
+	exit 0
+fi
+
+if [ "${ACTION}" == "update-config" ]; then
+	CONNECTIONS=$(get_connections)
+
+	for connection in vpn.giantswarm vpn2.giantswarm; do
+		echo "> update-config for ${connection}"
+		if nmcli --terse --get-values connection.uuid connection show ${connection} > /dev/null; then
+			echo -n "  "
+			nmcli connection delete ${connection}
+		fi
+		scp -qP 2222 "${USER}@${connection}.io:${USER}.ovpn" ~/secrets/giantswarm/${connection}.conf
+		echo -n "  "
+		nmcli connection import type openvpn file ~/secrets/giantswarm/${connection}.conf
+	done
 	
 	exit 0
 fi
