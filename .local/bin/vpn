@@ -2,6 +2,8 @@
 
 set -eu
 
+CONNECTION_NAMES="vpn.giantswarm vpn2.giantswarm"
+
 print_usage() {
   echo "Usage:
   $(basename $0) [ status [ <name> ] ]
@@ -66,7 +68,7 @@ fi
 if [ "${ACTION}" == "update-config" ]; then
 	CONNECTIONS=$(get_connections)
 
-	for connection in vpn.giantswarm vpn2.giantswarm; do
+	for connection in ${CONNECTION_NAMES}; do
 		echo "> update-config for ${connection}"
 		if nmcli --terse --get-values connection.uuid connection show ${connection} > /dev/null; then
 			echo -n "  "
@@ -75,6 +77,8 @@ if [ "${ACTION}" == "update-config" ]; then
 		scp -qP 2222 "${USER}@${connection}.io:${USER}.ovpn" ~/secrets/giantswarm/${connection}.conf
 		echo -n "  "
 		nmcli connection import type openvpn file ~/secrets/giantswarm/${connection}.conf
+		nmcli connection modify "${connection}" ipv4.never-default true
+		nmcli connection modify "${connection}" ipv6.never-default true
 	done
 	
 	exit 0
