@@ -2,6 +2,7 @@
 
 set -eu
 
+USERNAME="${USER}"
 CONNECTION_NAMES="vpn.giantswarm vpn2.giantswarm"
 
 print_usage() {
@@ -70,13 +71,21 @@ if [ "${ACTION}" == "update-config" ]; then
 
 	for connection in ${CONNECTION_NAMES}; do
 		echo "> update-config for ${connection}"
+
+		# Delete existing connection
 		if nmcli --terse --get-values connection.uuid connection show ${connection} > /dev/null; then
 			echo -n "  "
 			nmcli connection delete ${connection}
 		fi
-		scp -qP 2222 "${USER}@${connection}.io:${USER}.ovpn" ~/secrets/giantswarm/${connection}.conf
+
+		# Get new connection config
+		scp -qP 2222 "${USERNAME}@${connection}.io:${USERNAME}.ovpn" ~/secrets/giantswarm/${connection}.conf
 		echo -n "  "
+
+		# Import connection config
 		nmcli connection import type openvpn file ~/secrets/giantswarm/${connection}.conf
+
+		# Set option: Use this connection only for resources on its network
 		nmcli connection modify "${connection}" ipv4.never-default true
 		nmcli connection modify "${connection}" ipv6.never-default true
 	done
