@@ -85,6 +85,10 @@ if [ "${ACTION}" == "setup" ]; then
 	if [ "${2:-}" == "--dry-run" ]; then
 		dry_run=true
 	fi
+
+	# run is a wrapper function to support dry-run mode.
+	# dry-run=true  : will only print the command but not execute it
+	# dry-run=false : will print and execute the command
 	run(){
 		if $dry_run; then
 			echo $@
