@@ -22,7 +22,7 @@ print_usage() {
   $(basename $0) [ status [ <name> ] ]  list connections state (default action)
   $(basename $0) on|off [ <name> ]      enable or disable a connection (default name=vpn)
   $(basename $0) update-config          re-create connections with up to date OpenVPN configuration
-  $(basename $0) setup                  configure environement to work with OpenVPN
+  $(basename $0) setup [ --dry-run ]    configure environement to work with OpenVPN
   $(basename $0) help                   print this help
 
 Manage OpenVPN connections via NetworkManager
@@ -81,15 +81,30 @@ if [ "${ACTION}" == "off" ]; then
 fi
 
 if [ "${ACTION}" == "setup" ]; then
+	dry_run=false
+	if [ "${2:-}" == "--dry-run" ]; then
+		dry_run=true
+	fi
+	run(){
+		if $dry_run; then
+			echo $@
+		else
+		(
+			set -x
+			$@
+		)
+		fi
+	}
+
 	echo "> Checking /etc/resolv.conf"
 	if ! cat /etc/resolv.conf | grep -q 'NetworkManager'; then
 		echo "> Update /etc/resolv.conf to be managed by NetworkManager"
 		# Remove existing resolv.conf to get rid of any symlink
-		sudo rm -i /etc/resolv.conf
+		run sudo rm -i /etc/resolv.conf
 		# Disable systemd-resolved
-		sudo systemctl disable --now systemd-resolved.service
+		run sudo systemctl disable --now systemd-resolved.service
 		# Restart NetworkManager to generate a new resolv.conf
-		sudo systemctl restart NetworkManager.service
+		run sudo systemctl restart NetworkManager.service
 		# Wait for resolv.conf to be populated
 		echo -n "> waiting for dns resolver "
 		connection=$(get_connection)
