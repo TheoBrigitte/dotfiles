@@ -112,6 +112,9 @@ if [ "${ACTION}" == "update-config" ]; then
 		# Get new connection config
 		echo "  get connection config from ${connection}.io"
 		scp -qP "$VPN_PORT" "${USERNAME}@${connection}.io:${USERNAME}.ovpn" "$TMP_DIR/${connection}.conf"
+		sed -i '\#up /etc/openvpn/scripts/update-systemd-resolved#d' "$TMP_DIR/${connection}.conf"
+		sed -i '\#down /etc/openvpn/scripts/update-systemd-resolved#d' "$TMP_DIR/${connection}.conf"
+		sed -i '\#down-pre#d' "$TMP_DIR/${connection}.conf"
 
 		# Import connection config
 		echo "  import connection config into NetworkManager"
