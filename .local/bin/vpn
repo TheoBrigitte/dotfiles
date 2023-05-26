@@ -3,12 +3,20 @@
 set -eu
 
 # Variables
+#
+# USERNAME is the ssh login name for vpn hosts
 USERNAME="${USER}"
+# VPN_PORT is the ssh port for vpn hosts
 VPN_PORT=2222
+# VPN_TLD is the top-level domain for vpn hosts
+VPN_TLD="io"
+# CONNECTION_SUFFIX is used to build connection names
 CONNECTION_SUFFIX=".giantswarm"
+# CONNECTION_NAMES are the name used for both NetworkManager connection name and as vpn host name (without tld)
 CONNECTION_NAMES="vpn${CONNECTION_SUFFIX} vpn2${CONNECTION_SUFFIX}"
 
 # Functions
+
 print_usage() {
   echo "Usage:
   $(basename $0) [ status [ <name> ] ]  list connections state (default action)
@@ -23,6 +31,8 @@ Arguments
   <name>		name prefix of the vpn connection (e.g. vpn)"
 }
 
+# get_connection return a single connection name
+# (optional) $1 is the vpn connection name prefix
 get_connection() {
 	connection_prefix="${1:-vpn}"
 	connections=$(nmcli connection | grep "${connection_prefix}${CONNECTION_SUFFIX}" | sort -r | awk '{print $1}')
@@ -30,6 +40,7 @@ get_connection() {
 	echo "$connections" | head -n 1
 }
 
+# list_connections returns all connection names
 list_connections() {
 	echo "$CONNECTION_NAMES"
 }
@@ -82,7 +93,7 @@ if [ "${ACTION}" == "setup" ]; then
 		# Wait for resolv.conf to be populated
 		echo -n "> waiting for dns resolver "
 		connection=$(get_connection)
-		while ! host "${connection}.io" 1>/dev/null; do
+		while ! host "${connection}.${VPN_TLD}" 1>/dev/null; do
 			echo -n "."
 			sleep 1
 		done
@@ -111,8 +122,8 @@ if [ "${ACTION}" == "update-config" ]; then
 		fi
 
 		# Get new connection config
-		echo "  get connection config from ${connection}.io"
-		scp -qP "$VPN_PORT" "${USERNAME}@${connection}.io:${USERNAME}.ovpn" "$TMP_DIR/${connection}.conf"
+		echo "  get connection config from ${connection}.${VPN_TLD}"
+		scp -qP "$VPN_PORT" "${USERNAME}@${connection}.${VPN_TLD}:${USERNAME}.ovpn" "$TMP_DIR/${connection}.conf"
 		sed -i '\#up /etc/openvpn/scripts/update-systemd-resolved#d' "$TMP_DIR/${connection}.conf"
 		sed -i '\#down /etc/openvpn/scripts/update-systemd-resolved#d' "$TMP_DIR/${connection}.conf"
 		sed -i '\#down-pre#d' "$TMP_DIR/${connection}.conf"
@@ -127,7 +138,7 @@ if [ "${ACTION}" == "update-config" ]; then
 		nmcli connection modify "${connection}" ipv4.never-default true
 		nmcli connection modify "${connection}" ipv6.never-default true
 	done
-	
+
 	exit 0
 fi
 
