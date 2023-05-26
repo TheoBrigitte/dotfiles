@@ -50,7 +50,7 @@ ACTION=${1:-status}
 
 if [ "${ACTION}" == "status" ]; then
 	for connection in $(list_connections); do
-		if current_status=$(nmcli --terse --get-values GENERAL.STATE connection show "${connection}"); then
+		if current_status=$(nmcli --terse --get-values GENERAL.STATE connection show "${connection}" 2>/dev/null); then
 			status=$(echo "$current_status" | grep -q 'activated' && echo 'on' || echo 'off')
 		else
 			status="not-configured"
