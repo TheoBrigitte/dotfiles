@@ -2,89 +2,120 @@
 
 set -eu
 
+# Variables
 USERNAME="${USER}"
-CONNECTION_NAMES="vpn.giantswarm vpn2.giantswarm"
+VPN_PORT=2222
+CONNECTION_SUFFIX=".giantswarm"
+CONNECTION_NAMES="vpn${CONNECTION_SUFFIX} vpn2${CONNECTION_SUFFIX}"
 
+# Functions
 print_usage() {
   echo "Usage:
-  $(basename $0) [ status [ <name> ] ]
-  $(basename $0) on|off [ <name> ]
-  $(basename $0) update-config
-  $(basename $0) help
+  $(basename $0) [ status [ <name> ] ]  list connections state (default action)
+  $(basename $0) on|off [ <name> ]      enable or disable a connection (default name=vpn)
+  $(basename $0) update-config          re-create connections with up to date OpenVPN configuration
+  $(basename $0) setup                  configure environement to work with OpenVPN
+  $(basename $0) help                   print this help
 
-Manage vpn connections
+Manage OpenVPN connections
 
-  <name>		name of the vpn connection"
+Arguments
+  <name>		name prefix of the vpn connection (e.g. vpn)"
 }
 
-get_connections() {
-	CONNECTIONS=""
-	if [[ -z "${CONNECTION_PREFIX}" ]]; then
-		CONNECTIONS=$(nmcli connection | grep "${CONNECTION_SUFFIX}" | sort -r | awk '{print $1}')
-	else
-		CONNECTIONS="${CONNECTION_PREFIX}${CONNECTION_SUFFIX}"
-	fi
+get_connection() {
+	connection_prefix="${1:-vpn}"
+	connections=$(nmcli connection | grep "${connection_prefix}${CONNECTION_SUFFIX}" | sort -r | awk '{print $1}')
 
-	if [ -z ${1+x} ]; then
-		echo "$CONNECTIONS"
-	else
-		echo "$CONNECTIONS" | head -n $1
-	fi
+	echo "$connections" | head -n 1
+}
+
+list_connections() {
+	echo "$CONNECTION_NAMES"
 }
 
 # Arguments
 ACTION=${1:-status}
 CONNECTION_PREFIX=${2:-}
-CONNECTION_SUFFIX=".giantswarm"
 
 if [ "${ACTION}" == "status" ]; then
-	CONNECTIONS=$(get_connections)
-
-	for connection in ${CONNECTIONS}; do
-		status=$(nmcli -f GENERAL.STATE connection show "${connection}" | grep -q 'activated' && echo 'on' || echo 'off')
-		echo "> status ${connection} ${status}"
+	for connection in $(list_connections); do
+		if current_status=$(nmcli --terse --get-values GENERAL.STATE connection show "${connection}"); then
+			status=$(echo "$current_status" | grep -q 'activated' && echo 'on' || echo 'off')
+		else
+			status="not-configured"
+		fi
+		echo "> ${connection} ${status}"
 	done
 
 	exit 0
 fi
 
 if [ "${ACTION}" == "on" ]; then
-	CONNECTION=$(get_connections 1)
+	connection=$(get_connection "$CONNECTION_PREFIX")
 
-	echo "> enable ${CONNECTION}"
-	nmcli connection up "${CONNECTION}"
+	echo "> enable ${connection}"
+	nmcli connection up "${connection}"
 	
 	exit 0
 fi
 
 if [ "${ACTION}" == "off" ]; then
-	CONNECTION=$(get_connections 1)
+	connection=$(get_connection "$CONNECTION_PREFIX")
 
-	echo "> disable ${CONNECTION}"
-	nmcli connection down "${CONNECTION}"
+	echo "> disable ${connection}"
+	nmcli connection down "${connection}"
 	
 	exit 0
 fi
 
-if [ "${ACTION}" == "update-config" ]; then
-	CONNECTIONS=$(get_connections)
+if [ "${ACTION}" == "setup" ]; then
+	echo "> Checking /etc/resolv.conf"
+	if ! cat /etc/resolv.conf | grep -q 'NetworkManager'; then
+		echo "> Update /etc/resolv.conf to be managed by NetworkManager"
+		# Remove existing resolv.conf to get rid of any symlink
+		sudo rm -i /etc/resolv.conf
+		# Disable systemd-resolved
+		sudo systemctl disable --now systemd-resolved.service
+		# Restart NetworkManager to generate a new resolv.conf
+		sudo systemctl restart NetworkManager.service
+		# Wait for resolv.conf to be populated
+		echo -n "> waiting for dns resolver "
+		#while ! systemctl --quiet is-active NetworkManager-wait-online.service; do
+		while ! host vpn.giantswarm.io 1>/dev/null; do
+			echo -n "."
+			sleep 1
+		done
+		echo
+	else
+		echo "> All good, /etc/resolv.conf is managed by NetworkManager"
+	fi
 
-	for connection in ${CONNECTION_NAMES}; do
+	exit 0
+fi
+
+if [ "${ACTION}" == "update-config" ]; then
+	for connection in $(list_connections); do
 		echo "> update-config for ${connection}"
 
 		# Delete existing connection
-		if nmcli --terse --get-values connection.uuid connection show ${connection} > /dev/null; then
+		if nmcli --terse --get-values connection.uuid connection show ${connection} &> /dev/null; then
+			echo "  delete existing connection from NetworkManager"
 			echo -n "  "
 			nmcli connection delete ${connection}
 		fi
 
 		# Get new connection config
-		scp -qP 2222 "${USERNAME}@${connection}.io:${USERNAME}.ovpn" ~/secrets/giantswarm/${connection}.conf
-		echo -n "  "
+		echo "  get connection config from ${connection}.io"
+		TMP_DIR=$(mktemp --tmpdir --directory vpn.XXXXX)
+		scp -qP "$VPN_PORT" "${USERNAME}@${connection}.io:${USERNAME}.ovpn" "$TMP_DIR/${connection}.conf"
 
 		# Import connection config
-		nmcli connection import type openvpn file ~/secrets/giantswarm/${connection}.conf
+		echo "  import connection config into NetworkManager"
+		echo -n "  "
+		nmcli connection import type openvpn file "$TMP_DIR/${connection}.conf"
 
+		echo "  set connection options"
 		# Set option: Use this connection only for resources on its network
 		nmcli connection modify "${connection}" ipv4.never-default true
 		nmcli connection modify "${connection}" ipv6.never-default true
