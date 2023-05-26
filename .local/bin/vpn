@@ -17,7 +17,7 @@ print_usage() {
   $(basename $0) setup                  configure environement to work with OpenVPN
   $(basename $0) help                   print this help
 
-Manage OpenVPN connections
+Manage OpenVPN connections via NetworkManager
 
 Arguments
   <name>		name prefix of the vpn connection (e.g. vpn)"
@@ -81,12 +81,13 @@ if [ "${ACTION}" == "setup" ]; then
 		sudo systemctl restart NetworkManager.service
 		# Wait for resolv.conf to be populated
 		echo -n "> waiting for dns resolver "
-		#while ! systemctl --quiet is-active NetworkManager-wait-online.service; do
-		while ! host vpn.giantswarm.io 1>/dev/null; do
+		connection=$(get_connection)
+		while ! host "${connection}.io" 1>/dev/null; do
 			echo -n "."
 			sleep 1
 		done
 		echo
+		echo "> done"
 	else
 		echo "> All good, /etc/resolv.conf is managed by NetworkManager"
 	fi
