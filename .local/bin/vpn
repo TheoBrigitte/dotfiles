@@ -95,6 +95,10 @@ if [ "${ACTION}" == "setup" ]; then
 fi
 
 if [ "${ACTION}" == "update-config" ]; then
+	# Create temporary directory to store OpenVPN configuration files
+	TMP_DIR=$(mktemp --tmpdir --directory vpn.XXXXX)
+	trap "rm -r $TMP_DIR" EXIT
+
 	for connection in $(list_connections); do
 		echo "> update-config for ${connection}"
 
@@ -107,7 +111,6 @@ if [ "${ACTION}" == "update-config" ]; then
 
 		# Get new connection config
 		echo "  get connection config from ${connection}.io"
-		TMP_DIR=$(mktemp --tmpdir --directory vpn.XXXXX)
 		scp -qP "$VPN_PORT" "${USERNAME}@${connection}.io:${USERNAME}.ovpn" "$TMP_DIR/${connection}.conf"
 
 		# Import connection config
