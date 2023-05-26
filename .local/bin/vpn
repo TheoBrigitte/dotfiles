@@ -67,7 +67,7 @@ if [ "${ACTION}" == "on" ]; then
 
 	echo "> enable ${connection}"
 	nmcli connection up "${connection}"
-	
+
 	exit 0
 fi
 
@@ -77,7 +77,7 @@ if [ "${ACTION}" == "off" ]; then
 
 	echo "> disable ${connection}"
 	nmcli connection down "${connection}"
-	
+
 	exit 0
 fi
 
