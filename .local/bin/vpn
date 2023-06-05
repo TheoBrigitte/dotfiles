@@ -168,6 +168,25 @@ if [ "${ACTION}" == "setup" ]; then
 		echo "> All good, update-systemd-resolved is installed"
 	fi
 
+	echo "> done"
+
+	exit 0
+fi
+
+if [ "${ACTION}" == "uninstall" ]; then
+	echo "> Removing /etc/NetworkManager/dispatcher.d/10-openvpn"
+	sudo rm -f /etc/NetworkManager/dispatcher.d/10-openvpn
+	echo "> Removing update-systemd-resolved"
+	sudo rm -f /usr/bin/update-systemd-resolved
+	echo "> Removing /etc/resolv.conf"
+	sudo rm -f /etc/resolv.conf
+	echo "> Disabling systemd-resolved"
+	sudo systemctl disable --now systemd-resolved
+	echo "> Restarting NetworkManager"
+	sudo systemctl restart NetworkManager.service
+
+	echo "> done"
+
 	exit 0
 fi
 
