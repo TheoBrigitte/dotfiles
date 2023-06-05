@@ -23,6 +23,7 @@ print_usage() {
   $(basename $0) on|off [ <name> ]      enable or disable a connection (default name=vpn)
   $(basename $0) update-config          re-create connections with up to date OpenVPN configuration
   $(basename $0) setup [ --dry-run ]    configure environement to work with OpenVPN
+  $(basename $0) uninstall              uninstall environement created with the setup command
   $(basename $0) help                   print this help
 
 Manage OpenVPN connections via NetworkManager
@@ -35,7 +36,7 @@ Arguments
 # (optional) $1 is the vpn connection name prefix
 get_connection() {
 	connection_prefix="${1:-vpn}"
-	connections=$(nmcli connection | grep "${connection_prefix}${CONNECTION_SUFFIX}" | sort -r | awk '{print $1}')
+	connections="$(nmcli connection | grep "${connection_prefix}${CONNECTION_SUFFIX}" | sort -r | awk '{print $1}')"
 
 	echo "$connections" | head -n 1
 }
@@ -46,12 +47,12 @@ list_connections() {
 }
 
 # Arguments
-ACTION=${1:-status}
+ACTION="${1:-status}"
 
 if [ "${ACTION}" == "status" ]; then
 	for connection in $(list_connections); do
-		if current_status=$(nmcli --terse --get-values GENERAL.STATE connection show "${connection}" 2>/dev/null); then
-			status=$(echo "$current_status" | grep -q 'activated' && echo 'on' || echo 'off')
+		if current_status="$(nmcli --terse --get-values GENERAL.STATE connection show "${connection}" 2>/dev/null)"; then
+			status="$(echo "$current_status" | grep -q 'activated' && echo 'on' || echo 'off')"
 		else
 			status="not-configured"
 		fi
@@ -62,8 +63,8 @@ if [ "${ACTION}" == "status" ]; then
 fi
 
 if [ "${ACTION}" == "on" ]; then
-	connection_prefix=${2:-}
-	connection=$(get_connection "$connection_prefix")
+	connection_prefix="${2:-}"
+	connection="$(get_connection "$connection_prefix")"
 
 	echo "> enable ${connection}"
 	nmcli connection up "${connection}"
@@ -72,8 +73,8 @@ if [ "${ACTION}" == "on" ]; then
 fi
 
 if [ "${ACTION}" == "off" ]; then
-	connection_prefix=${2:-}
-	connection=$(get_connection "$connection_prefix")
+	connection_prefix="${2:-}"
+	connection="$(get_connection "$connection_prefix")"
 
 	echo "> disable ${connection}"
 	nmcli connection down "${connection}"
@@ -112,7 +113,7 @@ if [ "${ACTION}" == "setup" ]; then
 		run sudo systemctl restart NetworkManager.service
 		# Wait for resolv.conf to be populated
 		echo -n "> waiting for dns resolver "
-		connection=$(get_connection)
+		connection="$(get_connection)"
 		while ! host "${connection}.${VPN_TLD}" 1>/dev/null; do
 			echo -n "."
 			sleep 1
@@ -135,10 +136,10 @@ if [ "${ACTION}" == "update-config" ]; then
 		echo "> update-config for ${connection}"
 
 		# Delete existing connection
-		if nmcli --terse --get-values connection.uuid connection show ${connection} &> /dev/null; then
+		if nmcli --terse --get-values connection.uuid connection show "${connection}" &> /dev/null; then
 			echo "  delete existing connection from NetworkManager"
 			echo -n "  "
-			nmcli connection delete ${connection}
+			nmcli connection delete "${connection}"
 		fi
 
 		# Get new connection config
