@@ -191,9 +191,8 @@ if [ "${ACTION}" == "uninstall" ]; then
 fi
 
 if [ "${ACTION}" == "update-config" ]; then
-	# Create temporary directory to store OpenVPN configuration files
-	TMP_DIR=$(mktemp --tmpdir --directory vpn.XXXXX)
-	trap "rm -r $TMP_DIR" EXIT
+	# Make destination
+	mkdir -p ~/.config/vpn
 
 	for connection in $(list_connections); do
 		echo "> update-config for ${connection}"
@@ -207,20 +206,20 @@ if [ "${ACTION}" == "update-config" ]; then
 
 		# Get new connection config
 		echo "  get connection config from ${connection}.${VPN_TLD}"
-		scp -qP "$VPN_PORT" "${USERNAME}@${connection}.${VPN_TLD}:${USERNAME}.ovpn" "$TMP_DIR/${connection}.conf"
-		sed -i '\#up /etc/openvpn/scripts/update-systemd-resolved#d' "$TMP_DIR/${connection}.conf"
-		sed -i '\#down /etc/openvpn/scripts/update-systemd-resolved#d' "$TMP_DIR/${connection}.conf"
-		sed -i '\#down-pre#d' "$TMP_DIR/${connection}.conf"
+		scp -qP "$VPN_PORT" "${USERNAME}@${connection}.${VPN_TLD}:${USERNAME}.ovpn" ~/.config/vpn/${connection}.conf
+		sed -i '\#up /etc/openvpn/scripts/update-systemd-resolved#d' ~/.config/vpn/${connection}.conf
+		sed -i '\#down /etc/openvpn/scripts/update-systemd-resolved#d' ~/.config/vpn/${connection}.conf
+		sed -i '\#down-pre#d' ~/.config/vpn/${connection}.conf
 
-		# Import connection config
-		echo "  import connection config into NetworkManager"
+		echo "up $(command -vp update-systemd-resolved)" >> ~/.config/vpn/${connection}.conf
+		echo "up-restart" >> ~/.config/vpn/${connection}.conf
+		echo "down $(command -vp update-systemd-resolved)" >> ~/.config/vpn/${connection}.conf
+		echo "down-pre" >> ~/.config/vpn/${connection}.conf
+
+		# Create a dummy connection to trigger the 10-openvpn script
+		echo "  setup connection into NetworkManager"
 		echo -n "  "
-		nmcli connection import type openvpn file "$TMP_DIR/${connection}.conf"
-
-		echo "  set connection options"
-		# Set option: Use this connection only for resources on its network
-		nmcli connection modify "${connection}" ipv4.never-default true
-		nmcli connection modify "${connection}" ipv6.never-default true
+		nmcli connection add type dummy ifname "${connection%.*}" con-name "${connection}" autoconnect no
 	done
 
 	exit 0
