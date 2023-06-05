@@ -103,14 +103,17 @@ if [ "${ACTION}" == "setup" ]; then
 	}
 
 	echo "> Checking /etc/resolv.conf"
-	if ! cat /etc/resolv.conf | grep -q 'NetworkManager'; then
-		echo "> Update /etc/resolv.conf to be managed by NetworkManager"
+	if ! cat /etc/resolv.conf | grep -q '/run/systemd/resolve/stub-resolv.conf'; then
+		echo "> Updating /etc/resolv.conf to be managed by systemd-resolved"
 		# Remove existing resolv.conf to get rid of any symlink
-		run sudo rm -i /etc/resolv.conf
-		# Disable systemd-resolved
-		run sudo systemctl disable --now systemd-resolved.service
-		# Restart NetworkManager to generate a new resolv.conf
-		run sudo systemctl restart NetworkManager.service
+		run sudo rm -f /etc/resolv.conf
+		# Enable systemd-resolved
+		run sudo ln -sv /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+	fi
+
+	if ! systemctl is-active --quiet systemd-resolved.service; then
+		echo "> Enabling systemd-resolved"
+		run sudo systemctl enable --now systemd-resolved.service
 		# Wait for resolv.conf to be populated
 		echo -n "> waiting for dns resolver "
 		connection="$(get_connection)"
@@ -119,9 +122,50 @@ if [ "${ACTION}" == "setup" ]; then
 			sleep 1
 		done
 		echo
-		echo "> done"
+	fi
+	echo "> All good, /etc/resolv.conf is managed by systemd-networkd"
+
+	echo "> Installing /etc/NetworkManager/dispatcher.d/10-openvpn"
+	cat <<-EOF | run sudo tee /etc/NetworkManager/dispatcher.d/10-openvpn
+	#!/bin/sh
+	case "\$2" in
+	  up)
+	    if [[ "\$CONNECTION_ID" =~ ^vpn.*\.giantswarm ]]; then
+	      if [ ! -f "/var/run/\${CONNECTION_ID}.pid" ]; then
+	        echo "start \$CONNECTION_ID"
+	        openvpn --verb 3 --daemon --syslog --writepid "/var/run/\${CONNECTION_ID}.pid" --config "$HOME/.config/vpn/\${CONNECTION_ID}.conf"
+	        echo "started \$CONNECTION_ID as pid:\$(</var/run/\${CONNECTION_ID}.pid)"
+	      else
+	        echo "already started \$CONNECTION_ID as pid:\$(</var/run/\${CONNECTION_ID}.pid)"
+	      fi
+	    fi
+	    ;;
+	  down)
+	    if [[ "\$CONNECTION_ID" =~ ^vpn.*\.giantswarm ]]; then
+	      if [ -f "/var/run/\${CONNECTION_ID}.pid" ]; then
+	        pid=\$(</var/run/\${CONNECTION_ID}.pid)
+	        echo "stop \$CONNECTION_ID pid:\$pid"
+	        kill \$pid
+	        # wait for openvpn to stop, otherwise restarts will fail.
+	        waitpid \$pid
+	        echo "stopped \$CONNECTION_ID pid:\$pid"
+	      else
+	        echo "already stopped \$CONNECTION_ID"
+	      fi
+	    fi
+	    ;;
+	esac
+	EOF
+	run sudo chmod +x /etc/NetworkManager/dispatcher.d/10-openvpn
+
+	echo "> Checking update-systemd-resolved"
+	if ! command -vp update-systemd-resolved &>/dev/null; then
+		echo "> Installing update-systemd-resolved"
+		curl --progress-bar -O https://raw.githubusercontent.com/jonathanio/update-systemd-resolved/master/update-systemd-resolved
+		chmod +x update-systemd-resolved
+		sudo mv update-systemd-resolved /usr/bin/update-systemd-resolved
 	else
-		echo "> All good, /etc/resolv.conf is managed by NetworkManager"
+		echo "> All good, update-systemd-resolved is installed"
 	fi
 
 	exit 0
