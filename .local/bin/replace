@@ -8,11 +8,18 @@ fi
 
 a=$1
 shift
+
 b=$1
 shift
+
 dir=$1
 shift
+
 a="${a//\//\\/}"
 b="${b//\//\\/}"
 
+# replace in dir
 find "$dir" \( -path ./.git -o -path ./vendor \)  -prune -o -type f -print | xargs -tI{} sed -i -e "s/${a}/${b}/g" "{}"
+
+# replace in files
+#sed -i -e "s/${a}/${b}/g" $dir
