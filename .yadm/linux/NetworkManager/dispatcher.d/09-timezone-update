@@ -1,5 +1,9 @@
 #!/bin/sh
 
+set -eu
+
+TIMEOUT_SECONDS=10
+
 notify_send() {
     #Detect the name of the display in use
     local display=":$(ls /tmp/.X11-unix/* | sed 's#/tmp/.X11-unix/X##' | head -n 1)"
@@ -13,13 +17,27 @@ notify_send() {
     sudo -u $user DISPLAY=$display DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$uid/bus notify-send "$@"
 }
 
+error_handler() {
+    notify_send "timezone-update: ERROR" "$(cat $ERROR_FILE)"
+}
+
+ERROR_FILE=$(mktemp -t timezone-update.XXXXXX)
+trap error_handler ERR
+exec 2> $ERROR_FILE
+
 case "$2" in
-    up)
-        NEW_TIMEZONE=$(tzupdate --print-only)
+    connectivity-change)
+        # uncomment for debug
+        #notify_send "timezone-update: state:$CONNECTIVITY_STATE"
+        [ "$CONNECTIVITY_STATE" != "FULL" ] && exit
+        NEW_TIMEZONE=$(tzupdate --print-only --timeout $TIMEOUT_SECONDS)
         CURRENT_TIMEZONE=$(timedatectl show --property Timezone --value)
+        # uncomment for debug
+        #notify_send "timezone-update: new timezone:$NEW_TIMEZONE"
+        #notify_send "timezone-update: current timezone:$CURRENT_TIMEZONE"
         if [ -n "$NEW_TIMEZONE" ] && [ "$NEW_TIMEZONE" != "$CURRENT_TIMEZONE" ]; then
             timedatectl set-timezone "$NEW_TIMEZONE"
-            notify_send "Timezone changed - $NEW_TIMEZONE"
+            notify_send "timezone-update: changed - $NEW_TIMEZONE"
         fi
     ;;
 esac
