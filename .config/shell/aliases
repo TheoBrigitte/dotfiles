@@ -22,6 +22,9 @@ alias km='kubectl -n=monitoring'
 alias kd='kubectl -n=default'
 alias kv='ln -fsv $(ls -1 ~/.local/bin/kubectlv*|fzf) ~/.local/bin/kubectl'
 
+# flux
+alias fv='ln -fsv $(ls -1 ~/.local/bin/fluxv*|fzf) ~/.local/bin/flux'
+
 # git
 alias ga='git add'
 alias gap='git add -p'
