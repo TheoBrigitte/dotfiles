@@ -17,12 +17,16 @@ notify_send() {
     sudo -u $user DISPLAY=$display DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$uid/bus notify-send "$@"
 }
 
-error_handler() {
-    notify_send "timezone-update: ERROR" "$(cat $ERROR_FILE)"
+exit_handler() {
+    ERROR_MESSAGE="$(cat "$ERROR_FILE")"
+    if [ -n "$ERROR_MESSAGE" ]; then
+        notify_send "timezone-update: ERROR" "$ERROR_MESSAGE"
+    fi
+    rm "$ERROR_FILE"
 }
 
 ERROR_FILE=$(mktemp -t timezone-update.XXXXXX)
-trap error_handler ERR
+trap exit_handler ERR EXIT
 exec 2> $ERROR_FILE
 
 case "$2" in
