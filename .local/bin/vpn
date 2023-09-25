@@ -167,7 +167,14 @@ if [ "${ACTION}" == "setup" ]; then
 	    if [[ "\$CONNECTION_ID" =~ ^vpn.*\.giantswarm ]]; then
 	      if [ ! -f "/var/run/\${CONNECTION_ID}.pid" ]; then
 	        echo "start \$CONNECTION_ID"
-	        openvpn --verb 3 --daemon --syslog --writepid "/var/run/\${CONNECTION_ID}.pid" --config "$HOME/.config/vpn/\${CONNECTION_ID}.conf"
+	        openvpn --verb 3 --connect-retry-max 1 --connect-timeout 5 --daemon --syslog --writepid "/var/run/\${CONNECTION_ID}.pid" --config "$HOME/.config/vpn/\${CONNECTION_ID}.conf" --dev "tun-gs-\${CONNECTION_ID%.*}"
+	        echo "waiting 6 sec for \$CONNECTION_ID"
+	        sleep 6
+	        if test ! -f "/var/run/\${CONNECTION_ID}.pid"; then
+	            echo "failed \${CONNECTION_ID}"
+	            nmcli connection down "\${CONNECTION_ID}"
+	            exit 1
+	        fi
 	        echo "started \$CONNECTION_ID as pid:\$(</var/run/\${CONNECTION_ID}.pid)"
 	      else
 	        echo "already started \$CONNECTION_ID as pid:\$(</var/run/\${CONNECTION_ID}.pid)"
