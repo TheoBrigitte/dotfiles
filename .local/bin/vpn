@@ -363,6 +363,10 @@ if [ "${ACTION}" == "update-config" ]; then
 		echo "down $(command -vp update-systemd-resolved)" >> ~/.config/vpn/${connection}.conf
 		echo "down-pre" >> ~/.config/vpn/${connection}.conf
 
+		# Magic fix for connection timeout
+		# See https://gigantic.slack.com/archives/C52L7C6SC/p1695748910494979 https://github.com/giantswarm/vpn/pull/418
+		echo "tun-mtu 1410" >> ~/.config/vpn/${connection}.conf
+
 		# Create a dummy connection to trigger the 10-openvpn script
 		echo "  setup connection into NetworkManager"
 		echo -n "  "
