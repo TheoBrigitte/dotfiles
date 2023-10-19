@@ -19,12 +19,14 @@ CONNECTION_NAMES="vpn${CONNECTION_SUFFIX} vpn2${CONNECTION_SUFFIX}"
 
 print_usage() {
   echo "Usage:
-  $(basename $0) [ status [ <name> ] ]  list connections state (default action)
-  $(basename $0) on|off [ <name> ]      enable or disable a connection (default name=vpn)
-  $(basename $0) update-config          re-create connections with up to date OpenVPN configuration
-  $(basename $0) setup [ --dry-run ]    configure environement to work with OpenVPN
-  $(basename $0) uninstall              uninstall environement created with the setup command
-  $(basename $0) help                   print this help
+  $(basename $0) [ status [ <name> ] ]              list connections state (default action)
+  $(basename $0) on|off [ <name> ]                  enable or disable a connection (default name=vpn)
+  $(basename $0) logs [ <name> [ options ] ]        view logs for a connection, for options see 'man journalctl' (default name=vpn)
+  $(basename $0) show-config [ <name> ]             show OpenVPN configuration for connection <name> (default name=vpn)
+  $(basename $0) update-config                      re-create connections with up to date OpenVPN configuration
+  $(basename $0) setup [ --force ] [ --dry-run ]    configure environement to work with OpenVPN
+  $(basename $0) uninstall                          uninstall environement created with the setup command
+  $(basename $0) help                               print this help
 
 Manage OpenVPN connections via NetworkManager
 
@@ -48,6 +50,7 @@ list_connections() {
 
 # Arguments
 ACTION="${1:-status}"
+if [ $# -gt 0 ]; then shift; fi
 
 if [ "${ACTION}" == "status" ]; then
 	for connection in $(list_connections); do
@@ -56,7 +59,7 @@ if [ "${ACTION}" == "status" ]; then
 			pid="$(cat "/var/run/${connection}.pid")"
 			openvpn_status="active"
 		else
-			pid=""
+			pid="none"
 			openvpn_status="inactive"
 		fi
 
@@ -66,14 +69,15 @@ if [ "${ACTION}" == "status" ]; then
 		else
 			nm_status="not-configured"
 		fi
-		echo -e "> ${connection}\t${openvpn_status}  \t(${nm_status}\tpid:${pid})"
+		echo -e "> ${connection}\t${openvpn_status}  \tconnection=${nm_status}\tpid=${pid}"
 	done
 
 	exit 0
 fi
 
 if [ "${ACTION}" == "on" ]; then
-	connection_prefix="${2:-}"
+	connection_prefix="${1:-}"
+	if [ $# -gt 0 ]; then shift; fi
 	connection="$(get_connection "$connection_prefix")"
 
 	echo -n "> starting ${connection} ."
@@ -82,7 +86,7 @@ if [ "${ACTION}" == "on" ]; then
 	for i in $(seq 1 5); do
 		if ip link show up "tun-gs-${connection%.*}" &>/dev/null; then
 			echo
-			echo "> connected (pid: $(cat /var/run/${connection}.pid))"
+			echo "> connected pid=$(cat /var/run/${connection}.pid)"
 			exit 0
 		fi
 		echo -n "."
@@ -95,7 +99,8 @@ if [ "${ACTION}" == "on" ]; then
 fi
 
 if [ "${ACTION}" == "off" ]; then
-	connection_prefix="${2:-}"
+	connection_prefix="${1:-}"
+	if [ $# -gt 0 ]; then shift; fi
 	connection="$(get_connection "$connection_prefix")"
 
 	echo -n "> stopping ${connection} ."
@@ -116,10 +121,37 @@ if [ "${ACTION}" == "off" ]; then
 	exit 1
 fi
 
+if [ "${ACTION}" == "logs" ]; then
+	connection_prefix="${1:-}"
+	if [ $# -gt 0 ]; then shift; fi
+	connection="$(get_connection "$connection_prefix")"
+
+	if [ -f "/var/run/${connection}.pid" ]; then
+		pid="$(cat "/var/run/${connection}.pid")"
+		echo "> logs for ${connection} pid=${pid}"
+
+		pid="$(cat "/var/run/${connection}.pid")"
+		journalctl_args=(--lines=100 --follow)
+		if [ $# -gt 0 ]; then
+			journalctl_args=($@)
+		fi
+		journalctl "${journalctl_args[@]}" _PID="$pid"
+
+		exit 0
+	else
+		echo "> connection not found: ${connection}"
+		exit 1
+	fi
+fi
+
 if [ "${ACTION}" == "setup" ]; then
 	dry_run=false
-	if [ "${2:-}" == "--dry-run" ]; then
+	force=false
+	if [ "${1:-}" == "--dry-run" ] || [ "${2:-}" == "--dry-run" ]; then
 		dry_run=true
+	fi
+	if [ "${1:-}" == "--force" ] || [ "${2:-}" == "--force" ]; then
+		force=true
 	fi
 
 	# run is a wrapper function to support dry-run mode.
@@ -137,16 +169,44 @@ if [ "${ACTION}" == "setup" ]; then
 	}
 
 	echo "> Checking /etc/resolv.conf"
+	resolveconf_update=false
 	if ! cat /etc/resolv.conf | grep -q '/run/systemd/resolve/stub-resolv.conf'; then
-		echo "> Updating /etc/resolv.conf to be managed by systemd-resolved"
+		if ! $force; then
+			read -p "  Update /etc/resolv.conf ? (Y/n) "
+			if [[ $REPLY =~ ^[Nn]$ ]]; then
+				resolveconf_update=false
+			else
+				resolveconf_update=true
+			fi
+		else
+			resolveconf_update=true
+		fi
+	fi
+
+	if $resolveconf_update; then
+		echo "  Updating /etc/resolv.conf to be managed by systemd-resolved"
 		# Remove existing resolv.conf to get rid of any symlink
 		run sudo rm -f /etc/resolv.conf
 		# Enable systemd-resolved
 		run sudo ln -sv /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
 	fi
 
+	systemdresolved_enable=false
 	if ! systemctl is-active --quiet systemd-resolved.service; then
-		echo "> Enabling systemd-resolved"
+		if ! $force; then
+			read -p "  Enable systemd-resolved.service ? (Y/n) "
+			if [[ $REPLY =~ ^[Nn]$ ]]; then
+				systemdresolved_enable=false
+			else
+				systemdresolved_enable=true
+			fi
+		else
+			systemdresolved_enable=true
+		fi
+	fi
+
+	if $systemdresolved_enable; then
+		echo "  Enabling systemd-resolved"
 		run sudo systemctl enable --now systemd-resolved.service
 		# Wait for resolv.conf to be populated
 		echo -n "> waiting for dns resolver "
@@ -157,56 +217,92 @@ if [ "${ACTION}" == "setup" ]; then
 		done
 		echo
 	fi
-	echo "> All good, /etc/resolv.conf is managed by systemd-networkd"
+	echo "  All good, /etc/resolv.conf is managed by systemd-networkd"
 
-	echo "> Installing /etc/NetworkManager/dispatcher.d/10-openvpn"
-	cat <<-EOF | run sudo tee /etc/NetworkManager/dispatcher.d/10-openvpn
+	echo "> Checking /etc/NetworkManager/dispatcher.d/10-openvpn"
+	NM_DISPATCHER_TMP_FILE=$(mktemp --tmpdir vpn_nm_dispatcher.XXXXX)
+	cat <<-EOF > ${NM_DISPATCHER_TMP_FILE}
 	#!/bin/sh
 	case "\$2" in
 	  up)
 	    if [[ "\$CONNECTION_ID" =~ ^vpn.*\.giantswarm ]]; then
 	      if [ ! -f "/var/run/\${CONNECTION_ID}.pid" ]; then
-	        echo "start \$CONNECTION_ID"
-	        openvpn --verb 3 --connect-retry-max 1 --connect-timeout 5 --daemon --syslog --writepid "/var/run/\${CONNECTION_ID}.pid" --config "$HOME/.config/vpn/\${CONNECTION_ID}.conf" --dev "tun-gs-\${CONNECTION_ID%.*}"
-	        echo "waiting 6 sec for \$CONNECTION_ID"
-	        sleep 6
-	        if test ! -f "/var/run/\${CONNECTION_ID}.pid"; then
-	            echo "failed \${CONNECTION_ID}"
-	            nmcli connection down "\${CONNECTION_ID}"
-	            exit 1
-	        fi
-	        echo "started \$CONNECTION_ID as pid:\$(</var/run/\${CONNECTION_ID}.pid)"
+		echo "start \$CONNECTION_ID"
+		openvpn --verb 3 --connect-retry-max 1 --connect-timeout 5 --daemon --syslog --writepid "/var/run/\${CONNECTION_ID}.pid" --config "$HOME/.config/vpn/\${CONNECTION_ID}.conf" --dev "tun-gs-\${CONNECTION_ID%.*}"
+		echo "waiting 6 sec for \$CONNECTION_ID"
+		sleep 6
+		if test ! -f "/var/run/\${CONNECTION_ID}.pid"; then
+		    echo "failed \${CONNECTION_ID}"
+		    nmcli connection down "\${CONNECTION_ID}"
+		    exit 1
+		fi
+		echo "started \$CONNECTION_ID as pid:\$(</var/run/\${CONNECTION_ID}.pid)"
 	      else
-	        echo "already started \$CONNECTION_ID as pid:\$(</var/run/\${CONNECTION_ID}.pid)"
+		echo "already started \$CONNECTION_ID as pid:\$(</var/run/\${CONNECTION_ID}.pid)"
 	      fi
 	    fi
 	    ;;
 	  down)
 	    if [[ "\$CONNECTION_ID" =~ ^vpn.*\.giantswarm ]]; then
 	      if [ -f "/var/run/\${CONNECTION_ID}.pid" ]; then
-	        pid=\$(</var/run/\${CONNECTION_ID}.pid)
-	        echo "stop \$CONNECTION_ID pid:\$pid"
-	        kill \$pid
-	        # wait for openvpn to stop, otherwise restarts will fail.
-	        waitpid \$pid
-	        echo "stopped \$CONNECTION_ID pid:\$pid"
+		pid=\$(</var/run/\${CONNECTION_ID}.pid)
+		echo "stop \$CONNECTION_ID pid:\$pid"
+		kill \$pid
+		# wait for openvpn to stop, otherwise restarts will fail.
+		waitpid \$pid
+		echo "stopped \$CONNECTION_ID pid:\$pid"
 	      else
-	        echo "already stopped \$CONNECTION_ID"
+		echo "already stopped \$CONNECTION_ID"
 	      fi
 	    fi
 	    ;;
 	esac
 	EOF
-	run sudo chmod +x /etc/NetworkManager/dispatcher.d/10-openvpn
+
+	nm_dispatcher_install=false
+	if ! diff "${NM_DISPATCHER_TMP_FILE}" "/etc/NetworkManager/dispatcher.d/10-openvpn" || [ ! -x "/etc/NetworkManager/dispatcher.d/10-openvpn" ]; then
+		if ! $force; then
+			read -p "> Install /etc/NetworkManager/dispatcher.d/10-openvpn ? (Y/n) "
+			if [[ $REPLY =~ ^[Nn]$ ]]; then
+				nm_dispatcher_install=false
+			else
+				nm_dispatcher_install=true
+			fi
+		else
+			nm_dispatcher_install=true
+		fi
+	fi
+
+	if $nm_dispatcher_install; then
+		echo "  Installing /etc/NetworkManager/dispatcher.d/10-openvpn"
+		run sudo mv "${NM_DISPATCHER_TMP_FILE}" /etc/NetworkManager/dispatcher.d/10-openvpn
+		run sudo chmod +x /etc/NetworkManager/dispatcher.d/10-openvpn
+	else
+		echo "  All good, NetworkManager dispatcher is up to date"
+	fi
 
 	echo "> Checking update-systemd-resolved"
+	systemdresolved_install=false
 	if ! command -vp update-systemd-resolved &>/dev/null; then
-		echo "> Installing update-systemd-resolved"
+		if ! $force; then
+			read -p "  Install update-systemd-resolved ? (Y/n) "
+			if [[ $REPLY =~ ^[Nn]$ ]]; then
+				systemdresolved_install=false
+			else
+				systemdresolved_install=true
+			fi
+		else
+			systemdresolved_install=true
+		fi
+	fi
+
+	if $systemdresolved_install; then
+		echo "  Installing update-systemd-resolved"
 		curl --progress-bar -O https://raw.githubusercontent.com/jonathanio/update-systemd-resolved/master/update-systemd-resolved
 		chmod +x update-systemd-resolved
 		sudo mv update-systemd-resolved /usr/bin/update-systemd-resolved
 	else
-		echo "> All good, update-systemd-resolved is installed"
+		echo "  All good, update-systemd-resolved is installed"
 	fi
 
 	echo "> done"
@@ -227,6 +323,16 @@ if [ "${ACTION}" == "uninstall" ]; then
 	sudo systemctl restart NetworkManager.service
 
 	echo "> done"
+
+	exit 0
+fi
+
+if [ "${ACTION}" == "show-config" ]; then
+	connection_prefix="${1:-}"
+	if [ $# -gt 0 ]; then shift; fi
+	connection="$(get_connection "$connection_prefix")"
+
+	cat ~/.config/vpn/${connection}.conf
 
 	exit 0
 fi
