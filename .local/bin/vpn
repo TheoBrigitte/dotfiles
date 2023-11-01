@@ -52,6 +52,7 @@ list_connections() {
 ACTION="${1:-status}"
 if [ $# -gt 0 ]; then shift; fi
 
+# status print current status for all vpn connections
 if [ "${ACTION}" == "status" ]; then
 	for connection in $(list_connections); do
 		# OpenVPN process status
@@ -75,6 +76,7 @@ if [ "${ACTION}" == "status" ]; then
 	exit 0
 fi
 
+# on start an OpenVPN connection
 if [ "${ACTION}" == "on" ]; then
 	connection_prefix="${1:-}"
 	if [ $# -gt 0 ]; then shift; fi
@@ -98,6 +100,7 @@ if [ "${ACTION}" == "on" ]; then
 	exit 1
 fi
 
+# off stop an OpenVPN connection
 if [ "${ACTION}" == "off" ]; then
 	connection_prefix="${1:-}"
 	if [ $# -gt 0 ]; then shift; fi
@@ -121,6 +124,7 @@ if [ "${ACTION}" == "off" ]; then
 	exit 1
 fi
 
+# logs print OpenVPN connection's logs
 if [ "${ACTION}" == "logs" ]; then
 	connection_prefix="${1:-}"
 	if [ $# -gt 0 ]; then shift; fi
@@ -144,6 +148,7 @@ if [ "${ACTION}" == "logs" ]; then
 	fi
 fi
 
+# setup ensure current environement is correctly configured to handle OpenVPN connections
 if [ "${ACTION}" == "setup" ]; then
 	dry_run=false
 	force=false
@@ -168,6 +173,12 @@ if [ "${ACTION}" == "setup" ]; then
 		fi
 	}
 
+	# Check for local DNS resolver to use systemd-resolved with stub resolv.
+	# This allow for DNS requests to be routed to correct network interface
+	# e.g. DNS request for github.com -> default network interface
+	#      DNS request for myprivatedomain.com -> vpn network interface
+	# In order for this to work the vpn server must return DNS domains list,
+	# this can be verified using : resolvectl
 	echo "> Checking /etc/resolv.conf"
 	resolveconf_update=false
 	if ! cat /etc/resolv.conf | grep -q '/run/systemd/resolve/stub-resolv.conf'; then
@@ -219,6 +230,9 @@ if [ "${ACTION}" == "setup" ]; then
 	fi
 	echo "  All good, /etc/resolv.conf is managed by systemd-networkd"
 
+	# Check for NetworkManager dispatcher script to be installed.
+	# This script manages OpenVPN connections as root since it is ran by NetworkManager,
+	# and allow to control OpenVPN connections from userspace via NetworkManager cli (nmcli).
 	echo "> Checking /etc/NetworkManager/dispatcher.d/10-openvpn"
 	NM_DISPATCHER_TMP_FILE=$(mktemp --tmpdir vpn_nm_dispatcher.XXXXX)
 	cat <<-EOF > ${NM_DISPATCHER_TMP_FILE}
@@ -282,6 +296,9 @@ if [ "${ACTION}" == "setup" ]; then
 		echo "  All good, NetworkManager dispatcher is up to date"
 	fi
 
+	# Check for update-systemd-resolved script to be installed.
+	# This script ensure OpenVPN directly update DNS settings in systemd-resolved.
+	# See https://github.com/jonathanio/update-systemd-resolved
 	echo "> Checking update-systemd-resolved"
 	systemdresolved_install=false
 	if ! command -vp update-systemd-resolved &>/dev/null; then
@@ -311,6 +328,7 @@ if [ "${ACTION}" == "setup" ]; then
 	exit 0
 fi
 
+# uninstall remove all elements configured via setup.
 if [ "${ACTION}" == "uninstall" ]; then
 	echo "> Removing /etc/NetworkManager/dispatcher.d/10-openvpn"
 	sudo rm -f /etc/NetworkManager/dispatcher.d/10-openvpn
@@ -328,6 +346,7 @@ if [ "${ACTION}" == "uninstall" ]; then
 	exit 0
 fi
 
+# show-config prints OpenVPN config
 if [ "${ACTION}" == "show-config" ]; then
 	connection_prefix="${1:-}"
 	if [ $# -gt 0 ]; then shift; fi
@@ -338,6 +357,7 @@ if [ "${ACTION}" == "show-config" ]; then
 	exit 0
 fi
 
+# update-config updates OpenVPN connections configuration files.
 if [ "${ACTION}" == "update-config" ]; then
 	# Make destination
 	mkdir -p ~/.config/vpn
