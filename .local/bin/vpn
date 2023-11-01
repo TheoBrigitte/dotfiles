@@ -260,7 +260,7 @@ if [ "${ACTION}" == "setup" ]; then
 	EOF
 
 	nm_dispatcher_install=false
-	if ! diff "${NM_DISPATCHER_TMP_FILE}" "/etc/NetworkManager/dispatcher.d/10-openvpn" || [ ! -x "/etc/NetworkManager/dispatcher.d/10-openvpn" ]; then
+	if ! diff "${NM_DISPATCHER_TMP_FILE}" "/etc/NetworkManager/dispatcher.d/10-openvpn" || [ ! -x "/etc/NetworkManager/dispatcher.d/10-openvpn" ] || [ $(stat --printf "%u" "/etc/NetworkManager/dispatcher.d/10-openvpn") -ne 0 ]; then
 		if ! $force; then
 			read -p "> Install /etc/NetworkManager/dispatcher.d/10-openvpn ? (Y/n) "
 			if [[ $REPLY =~ ^[Nn]$ ]]; then
@@ -277,6 +277,7 @@ if [ "${ACTION}" == "setup" ]; then
 		echo "  Installing /etc/NetworkManager/dispatcher.d/10-openvpn"
 		run sudo mv "${NM_DISPATCHER_TMP_FILE}" /etc/NetworkManager/dispatcher.d/10-openvpn
 		run sudo chmod +x /etc/NetworkManager/dispatcher.d/10-openvpn
+		run sudo chown root: /etc/NetworkManager/dispatcher.d/10-openvpn
 	else
 		echo "  All good, NetworkManager dispatcher is up to date"
 	fi
