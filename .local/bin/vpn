@@ -82,20 +82,21 @@ if [ "${ACTION}" == "on" ]; then
 	if [ $# -gt 0 ]; then shift; fi
 	connection="$(get_connection "$connection_prefix")"
 
-	echo -n "> starting ${connection} ."
-	nmcli connection up "${connection}" 1>/dev/null
+	echo "> starting ${connection}"
+	if nmcli connection up "${connection}" 1>/dev/null; then
+		echo -n "> waiting "
+		for i in $(seq 1 5); do
+			echo -n "."
+			if ip link show up "tun-gs-${connection%.*}" &>/dev/null; then
+				echo
+				echo "> connected pid=$(cat /var/run/${connection}.pid)"
+				exit 0
+			fi
+			sleep 1
+		done
+		echo
+	fi
 
-	for i in $(seq 1 5); do
-		if ip link show up "tun-gs-${connection%.*}" &>/dev/null; then
-			echo
-			echo "> connected pid=$(cat /var/run/${connection}.pid)"
-			exit 0
-		fi
-		echo -n "."
-		sleep 1
-	done
-
-        echo
         echo "> failed"
 	exit 1
 fi
@@ -106,20 +107,21 @@ if [ "${ACTION}" == "off" ]; then
 	if [ $# -gt 0 ]; then shift; fi
 	connection="$(get_connection "$connection_prefix")"
 
-	echo -n "> stopping ${connection} ."
-	nmcli connection down "${connection}" 1>/dev/null
+	echo "> stopping ${connection}"
+	if nmcli connection down "${connection}" 1>/dev/null; then
+		echo -n "> waiting "
+		for i in $(seq 1 5); do
+			echo -n "."
+			if ! ip link show up "tun-gs-${connection%.*}" &>/dev/null; then
+				echo
+				echo "> disconnected"
+				exit 0
+			fi
+			sleep 1
+		done
+		echo
+	fi
 
-	for i in $(seq 1 5); do
-		if ! ip link show up "tun-gs-${connection%.*}" &>/dev/null; then
-			echo
-			echo "> disconnected"
-			exit 0
-		fi
-		echo -n "."
-		sleep 1
-	done
-
-        echo
         echo "> failed"
 	exit 1
 fi
