@@ -15,11 +15,11 @@ function main() {
     install_giantswarm_tools
     install_completion
     install_vim_config
+    set_shell
 
     _printf "> install successful!"
-
-    echo "> restart: ${SHELL}"
-    exec -l $SHELL
+    echo "> restart shell"
+    exec -l /bin/zsh
 }
 
 function _printf() {
@@ -212,6 +212,13 @@ function install_vim_config() {
     fi
     git clone https://github.com/TheoBrigitte/vim.git ~/.vim
     ~/.vim/install.sh
+}
+
+function set_shell() {
+    if ! ask "set default shell to zsh"; then
+        return 0
+    fi
+    chsh --shell /bin/zsh
 }
 
 main "$@"
