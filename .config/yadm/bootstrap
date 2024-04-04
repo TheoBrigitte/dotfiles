@@ -205,7 +205,6 @@ function install_vim_config() {
         return 0
     fi
     git clone https://github.com/TheoBrigitte/vim.git ~/.vim
-    ~/.vim/install.sh
 }
 
 function set_shell() {
