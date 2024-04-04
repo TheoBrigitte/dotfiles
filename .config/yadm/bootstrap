@@ -10,7 +10,7 @@ function main() {
 
     install_packages
     install_oh_my_zsh
-    install_zsh_sync
+    #install_zsh_sync
     install_theo_tools
     install_giantswarm_tools
     install_completion
