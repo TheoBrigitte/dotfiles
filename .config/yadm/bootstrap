@@ -144,11 +144,8 @@ function install_theo_tools() {
         return 0
     fi
 
-    _printf "> install github.com/TheoBrigitte/gile"
-    go install github.com/TheoBrigitte/gile
-
     _printf "> install golang.org/x/lint/golint"
-    go get -u golang.org/x/lint/golint
+    go install golang.org/x/lint/golint@latest
 }
 
 
@@ -158,23 +155,25 @@ function install_giantswarm_tools() {
     fi
 
     _printf "> install github.com/giantswarm/opsctl"
-    go install github.com/giantswarm/opsctl
+    cd /tmp
+    rm -rf opsctl
+    release=$(curl -sL -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/giantswarm/opsctl/releases/latest | grep tag_name | cut -d '"' -f 4)
+    git clone -b $release --depth 1 -c advice.detachedHead=false git@github.com:giantswarm/opsctl.git
+    cd opsctl
+    go install
 
     _printf "> install github.com/giantswarm/gsctl"
-    go install github.com/giantswarm/gsctl
+    rm -rf gsctl
+    release=$(curl -sL -H "Authorization: Bearer $GITHUB_TOKEN" https://api.github.com/repos/giantswarm/gsctl/releases/latest | grep tag_name | cut -d '"' -f 4)
+    git clone -b $release --depth 1 -c advice.detachedHead=false git@github.com:giantswarm/gsctl.git
+    cd gsctl
+    go install
 
     _printf "> install github.com/giantswarm/luigi"
-    go install github.com/giantswarm/luigi
+    go install github.com/giantswarm/luigi@latest
 
     _printf "> install github.com/giantswarm/e2e-harness"
-    go install github.com/giantswarm/e2e-harness
-
-    (
-        mkdir -p "$HOME/.helm/plugins/"
-        cd "$HOME/.helm/plugins/"
-        git clone https://github.com/app-registry/appr-helm-plugin.git registry
-        helm registry --help
-    )
+    go install github.com/giantswarm/e2e-harness@latest
 }
 
 function install_completion() {
