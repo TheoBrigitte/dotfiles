@@ -78,7 +78,7 @@ function install_packages() {
 
 function install_packages_arch() {
     install_packages_arch_pacman
-    install_packages_arch_yaourt
+    install_packages_arch_aur
 }
 
 function install_packages_arch_pacman() {
@@ -97,8 +97,8 @@ $(cat "$HOME/.yadm/packages/arch/pacman/${file}")"
 }
 
 function install_packages_arch_yaourt() {
-    if ! command -v yaourt > /dev/null; then
-        install_yaourt
+    if ! command -v yay; then
+        install_yay
     fi
 
     local packages=""
@@ -111,22 +111,18 @@ $(cat "$HOME/.yadm/packages/arch/yaourt/${file}")"
     done
 
     if [ -n "${packages}" ]; then
-        yaourt -Sy --noconfirm ${packages}
+        yay -Sy --noconfirm ${packages}
     fi
 }
 
-function install_yaourt() {
-    # install package-query
+function install_yay() {
+    # install yay
     cd /tmp
-    git clone https://aur.archlinux.org/package-query.git
-    cd package-query
+    pacman -S --needed git base-devel
+    git clone https://aur.archlinux.org/yay.git
+    cd yay
     makepkg -si
 
-    # install yaourt
-    cd /tmp
-    git clone https://aur.archlinux.org/yaourt.git
-    cd yaourt
-    makepkg -si
 }
 
 function install_oh_my_zsh() {
