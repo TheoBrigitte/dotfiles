@@ -96,17 +96,17 @@ $(cat "$HOME/.yadm/packages/arch/pacman/${file}")"
     fi
 }
 
-function install_packages_arch_yaourt() {
+function install_packages_arch_aur() {
     if ! command -v yay; then
         install_yay
     fi
 
     local packages=""
 
-    for file in $(ls $HOME/.yadm/packages/arch/yaourt/); do
-        if ask "install yaourt ${file}"; then
+    for file in $(ls $HOME/.yadm/packages/arch/aur/); do
+        if ask "install aur ${file}"; then
             packages="${packages}
-$(cat "$HOME/.yadm/packages/arch/yaourt/${file}")"
+$(cat "$HOME/.yadm/packages/arch/aur/${file}")"
         fi
     done
 

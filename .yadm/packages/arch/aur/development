@@ -1,14 +1,9 @@
-dep
-glide
 kubernetes-helm
-kubectl-bin
 kubectx
 minikube
 openvpn-update-systemd-resolved
 python-azure-cli
 slack-desktop
-rxvt-unicode-pixbuf
 vi-vim-symlink
-yadm-git
 yamllint
 yq
