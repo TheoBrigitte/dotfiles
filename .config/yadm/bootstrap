@@ -187,9 +187,8 @@ function install_completion() {
     opsctl completion bash > "${bash_completion}/opsctl"
     opsctl completion zsh > "${zsh_completion}/_opsctl"
 
-    gsctl completion
-    mv gsctl-completion-bash.sh "${bash_completion}/gsctl"
-    mv gsctl-completion-zsh.sh "${zsh_completion}/_gsctl"
+    gsctl completion bash --stdout > "${bash_completion}/gsctl"
+    gsctl completion zsh --stdout > "${zsh_completion}/gsctl"
 
     helm completion bash > "${bash_completion}/helm"
     helm completion zsh > "${zsh_completion}/_helm"
