@@ -2,10 +2,7 @@ base-devel
 bash-completion
 dnsutils
 keychain
-libva-vdpau-driver
-linux-headers
-nvidia
-nvidia-utils
+go
 guvcview
 redshift
 rsync
