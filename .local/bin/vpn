@@ -23,9 +23,9 @@ print_usage() {
   $(basename $0) on|off [ <name> ]                  enable or disable a connection (default name=vpn)
   $(basename $0) logs [ <name> [ options ] ]        view logs for a connection, for options see 'man journalctl' (default name=vpn)
   $(basename $0) show-config [ <name> ]             show OpenVPN configuration for connection <name> (default name=vpn)
-  $(basename $0) update-config                      re-create connections with up to date OpenVPN configuration
+  $(basename $0) update-config                      (re-)create connections with up to date OpenVPN configuration
   $(basename $0) install [ --force ] [ --dry-run ]  configure environement to work with OpenVPN
-  $(basename $0) uninstall                          uninstall environement created with the setup command
+  $(basename $0) uninstall [ --dry-run ]            uninstall environement created with the install command
   $(basename $0) help                               print this help
 
 Manage OpenVPN connections via NetworkManager
@@ -330,18 +330,37 @@ if [ "${ACTION}" == "install" ]; then
 	exit 0
 fi
 
-# uninstall remove all elements configured via setup.
+# uninstall remove all elements configured via install.
 if [ "${ACTION}" == "uninstall" ]; then
+	dry_run=false
+	if [ "${1:-}" == "--dry-run" ] || [ "${2:-}" == "--dry-run" ]; then
+		dry_run=true
+	fi
+
+	# run is a wrapper function to support dry-run mode.
+	# dry-run=true  : will only print the command but not execute it
+	# dry-run=false : will print and execute the command
+	run(){
+		if $dry_run; then
+			echo "dry_run: $@"
+		else
+		(
+			set -x
+			$@
+		)
+		fi
+	}
+
 	echo "> Removing /etc/NetworkManager/dispatcher.d/10-openvpn"
-	sudo rm -f /etc/NetworkManager/dispatcher.d/10-openvpn
+	run sudo rm -f /etc/NetworkManager/dispatcher.d/10-openvpn
 	echo "> Removing update-systemd-resolved"
-	sudo rm -f /usr/bin/update-systemd-resolved
+	run sudo rm -f /usr/bin/update-systemd-resolved
 	echo "> Removing /etc/resolv.conf"
-	sudo rm -f /etc/resolv.conf
+	run sudo rm -f /etc/resolv.conf
 	echo "> Disabling systemd-resolved"
-	sudo systemctl disable --now systemd-resolved
+	run sudo systemctl disable --now systemd-resolved
 	echo "> Restarting NetworkManager"
-	sudo systemctl restart NetworkManager.service
+	run sudo systemctl restart NetworkManager.service
 
 	echo "> done"
 
