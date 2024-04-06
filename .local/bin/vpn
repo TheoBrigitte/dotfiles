@@ -24,7 +24,7 @@ print_usage() {
   $(basename $0) logs [ <name> [ options ] ]        view logs for a connection, for options see 'man journalctl' (default name=vpn)
   $(basename $0) show-config [ <name> ]             show OpenVPN configuration for connection <name> (default name=vpn)
   $(basename $0) update-config                      re-create connections with up to date OpenVPN configuration
-  $(basename $0) setup [ --force ] [ --dry-run ]    configure environement to work with OpenVPN
+  $(basename $0) install [ --force ] [ --dry-run ]  configure environement to work with OpenVPN
   $(basename $0) uninstall                          uninstall environement created with the setup command
   $(basename $0) help                               print this help
 
@@ -150,8 +150,8 @@ if [ "${ACTION}" == "logs" ]; then
 	fi
 fi
 
-# setup ensure current environement is correctly configured to handle OpenVPN connections
-if [ "${ACTION}" == "setup" ]; then
+# install ensure current environement is correctly configured to handle OpenVPN connections
+if [ "${ACTION}" == "install" ]; then
 	dry_run=false
 	force=false
 	if [ "${1:-}" == "--dry-run" ] || [ "${2:-}" == "--dry-run" ]; then
@@ -166,7 +166,7 @@ if [ "${ACTION}" == "setup" ]; then
 	# dry-run=false : will print and execute the command
 	run(){
 		if $dry_run; then
-			echo $@
+			echo "dry_run: $@"
 		else
 		(
 			set -x
@@ -207,7 +207,7 @@ if [ "${ACTION}" == "setup" ]; then
 	systemdresolved_enable=false
 	if ! systemctl is-active --quiet systemd-resolved.service; then
 		if ! $force; then
-			read -p "  Enable systemd-resolved.service ? (Y/n) "
+			read -p "> Enable systemd-resolved.service ? (Y/n) "
 			if [[ $REPLY =~ ^[Nn]$ ]]; then
 				systemdresolved_enable=false
 			else
