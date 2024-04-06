@@ -224,7 +224,7 @@ if [ "${ACTION}" == "setup" ]; then
 		# Wait for resolv.conf to be populated
 		echo -n "> waiting for dns resolver "
 		connection="$(get_connection)"
-		while ! host "${connection}.${VPN_TLD}" 1>/dev/null; do
+		while ! host "github.com" 1>/dev/null; do
 			echo -n "."
 			sleep 1
 		done
@@ -276,7 +276,7 @@ if [ "${ACTION}" == "setup" ]; then
 	EOF
 
 	nm_dispatcher_install=false
-	if ! diff "${NM_DISPATCHER_TMP_FILE}" "/etc/NetworkManager/dispatcher.d/10-openvpn" || [ ! -x "/etc/NetworkManager/dispatcher.d/10-openvpn" ] || [ $(stat --printf "%u" "/etc/NetworkManager/dispatcher.d/10-openvpn") -ne 0 ]; then
+	if [ ! -x "/etc/NetworkManager/dispatcher.d/10-openvpn" ] || ! diff "${NM_DISPATCHER_TMP_FILE}" "/etc/NetworkManager/dispatcher.d/10-openvpn" || [ $(stat --printf "%u" "/etc/NetworkManager/dispatcher.d/10-openvpn") -ne 0 ]; then
 		if ! $force; then
 			read -p "> Install /etc/NetworkManager/dispatcher.d/10-openvpn ? (Y/n) "
 			if [[ $REPLY =~ ^[Nn]$ ]]; then
