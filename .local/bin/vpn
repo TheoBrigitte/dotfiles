@@ -6,14 +6,22 @@ set -eu
 #
 # USERNAME is the ssh login name for vpn hosts
 USERNAME="${USER}"
-# VPN_PORT is the ssh port for vpn hosts
-VPN_PORT=2222
-# VPN_TLD is the top-level domain for vpn hosts
-VPN_TLD="io"
-# CONNECTION_SUFFIX is used to build connection names
-CONNECTION_SUFFIX=".giantswarm"
-# CONNECTION_NAMES are the name used for both NetworkManager connection name and as vpn host name (without tld)
-CONNECTION_NAMES="vpn${CONNECTION_SUFFIX} vpn2${CONNECTION_SUFFIX}"
+# CONNECTION_NAMES is a map of connnection short names (used as arguments for this script) and connection names used for NetworkManager
+declare -A CONNECTION_NAMES=(
+	[vpn]="vpn.giantswarm"
+	[vpn2]="vpn2.giantswarm"
+)
+# Each connection in the CONNECTION_NAMES map needs a corresponding
+# <name>_CONFIG variable holding details where to find the OpenVPN
+# configuration file.
+declare -A VPN_CONFIG=(
+	[url]="${USERNAME}@vpn.giantswarm.io:${USERNAME}.ovpn"
+	[port]=2222
+)
+declare -A VPN2_CONFIG=(
+	[url]="${USERNAME}@vpn2.giantswarm.io:${USERNAME}.ovpn"
+	[port]=2222
+)
 
 # Functions
 
@@ -37,15 +45,18 @@ Arguments
 # get_connection return a single connection name
 # (optional) $1 is the vpn connection name prefix
 get_connection() {
-	connection_prefix="${1:-vpn}"
-	connections="$(nmcli connection | grep "${connection_prefix}${CONNECTION_SUFFIX}" | sort -r | awk '{print $1}')"
-
-	echo "$connections" | head -n 1
+	connection_name="${1:-vpn}"
+	if [[ -v "CONNECTION_NAMES[$connection_name]" ]]; then
+		connections="$(nmcli connection | grep "${CONNECTION_NAMES[$connection_name]}" | sort -r | awk '{print $1}')"
+		echo "$connections" | head -n 1
+	else
+		echo "$connection_name"
+	fi
 }
 
 # list_connections returns all connection names
 list_connections() {
-	echo "$CONNECTION_NAMES"
+	echo "${CONNECTION_NAMES[@]}"
 }
 
 # Arguments
@@ -78,9 +89,9 @@ fi
 
 # on start an OpenVPN connection
 if [ "${ACTION}" == "on" ]; then
-	connection_prefix="${1:-}"
+	connection_name="${1:-}"
 	if [ $# -gt 0 ]; then shift; fi
-	connection="$(get_connection "$connection_prefix")"
+	connection="$(get_connection "$connection_name")"
 
 	echo "> starting ${connection}"
 	if nmcli connection up "${connection}" 1>/dev/null; then
@@ -103,9 +114,9 @@ fi
 
 # off stop an OpenVPN connection
 if [ "${ACTION}" == "off" ]; then
-	connection_prefix="${1:-}"
+	connection_name="${1:-}"
 	if [ $# -gt 0 ]; then shift; fi
-	connection="$(get_connection "$connection_prefix")"
+	connection="$(get_connection "$connection_name")"
 
 	echo "> stopping ${connection}"
 	if nmcli connection down "${connection}" 1>/dev/null; then
@@ -128,9 +139,9 @@ fi
 
 # logs print OpenVPN connection's logs
 if [ "${ACTION}" == "logs" ]; then
-	connection_prefix="${1:-}"
+	connection_name="${1:-}"
 	if [ $# -gt 0 ]; then shift; fi
-	connection="$(get_connection "$connection_prefix")"
+	connection="$(get_connection "$connection_name")"
 
 	if [ -f "/var/run/${connection}.pid" ]; then
 		pid="$(cat "/var/run/${connection}.pid")"
@@ -369,9 +380,9 @@ fi
 
 # show-config prints OpenVPN config
 if [ "${ACTION}" == "show-config" ]; then
-	connection_prefix="${1:-}"
+	connection_name="${1:-}"
 	if [ $# -gt 0 ]; then shift; fi
-	connection="$(get_connection "$connection_prefix")"
+	connection="$(get_connection "$connection_name")"
 
 	cat ~/.config/vpn/${connection}.conf
 
@@ -383,7 +394,9 @@ if [ "${ACTION}" == "update-config" ]; then
 	# Make destination
 	mkdir -p ~/.config/vpn
 
-	for connection in $(list_connections); do
+	for connection_name in "${!CONNECTION_NAMES[@]}"; do
+		connection="${CONNECTION_NAMES[$connection_name]}"
+
 		echo "> update-config for ${connection}"
 
 		# Delete existing connection
@@ -394,8 +407,14 @@ if [ "${ACTION}" == "update-config" ]; then
 		fi
 
 		# Get new connection config
-		echo "  get connection config from ${connection}.${VPN_TLD}"
-		scp -qP "$VPN_PORT" "${USERNAME}@${connection}.${VPN_TLD}:${USERNAME}.ovpn" ~/.config/vpn/${connection}.conf
+		config_var="${connection_name^^}_CONFIG"
+		config_url="${config_var}[url]"
+		config_port="${config_var}[port]"
+		url=${!config_url}
+		port=${!config_port}
+
+		echo "  get connection config from ${url}"
+		scp -qP "$port" "${url}" ~/.config/vpn/${connection}.conf
 		sed -i '\#up /etc/openvpn/scripts/update-systemd-resolved#d' ~/.config/vpn/${connection}.conf
 		sed -i '\#down /etc/openvpn/scripts/update-systemd-resolved#d' ~/.config/vpn/${connection}.conf
 		sed -i '\#down-pre#d' ~/.config/vpn/${connection}.conf
