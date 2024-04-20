@@ -19,7 +19,7 @@ source "$HOME/.config/shell/kube-ps1.sh"
 LOCAL_BIN="$HOME/.local/bin"
 export GOPATH="$HOME"
 export GOBIN="$GOPATH/bin"
-export PATH="$GOBIN:$HOME/.cargo/bin:$LOCAL_BIN:$HOME/.krew/bin:$PATH"
+export PATH="$GOBIN:$HOME/.cargo/bin:$LOCAL_BIN:$HOME/.krew/bin:$HOME/.local/share/solana/install/active_release/bin:$PATH"
 export EDITOR=vim
 export VISUAL=$EDITOR
 export GPG_TTY=$(tty)
