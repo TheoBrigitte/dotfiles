@@ -127,6 +127,9 @@ cdpath=(
     $HOME/projects
 )
 
+# z: filesystem navigation
+. /usr/share/z/z.sh
+
 # prompt
 local blue='%{[1;36m%}'
 local red='%{[1;31m%}'
