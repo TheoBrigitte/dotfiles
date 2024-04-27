@@ -46,10 +46,9 @@ if [ $# -gt 0 ]; then
 fi
 
 #FILE=$(ssh dl -- find -type f|fzf)
-FILE=$(ssh dl -- 'find -not -path "*/.*" -type f -printf "%TY-%Tm-%Td %TT %p\n" | sort -n | '"$TAIL_CMD" | fzf --tac --exact --select-1 --exit-0 --query "$QUERY")
+FILE="$(ssh dl -- 'find -not -path "*/.*" -type f -printf "%TY-%Tm-%Td %TT %p\n" | sort -n | '"$TAIL_CMD"'' | fzf --tac --exact --select-1 --exit-0 --query "$QUERY")"
 
-FILEPATH="$(echo "${FILE}" | awk '{print $3}')"
-echo "> play with : nohup vlc ~/Videos/${FILEPATH} &"
-echo
+FILEPATH="$(echo "${FILE}" | cut -d' ' -f3-)"
+#echo "> play with : nohup vlc ~/Videos/${FILEPATH} &"
 echo "> downloading file ${FILEPATH} to ~/Videos/"
 rsync -avP --progress --inplace "dl:${FILEPATH}" ~/Videos/
