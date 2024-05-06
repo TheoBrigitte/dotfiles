@@ -50,5 +50,5 @@ FILE="$(ssh dl -- 'find -not -path "*/.*" -type f -printf "%TY-%Tm-%Td %TT %p\n"
 
 FILEPATH="$(echo "${FILE}" | cut -d' ' -f3-)"
 #echo "> play with : nohup vlc ~/Videos/${FILEPATH} &"
-echo "> downloading file ${FILEPATH} to ~/Videos/"
+echo "> downloading file \"${FILEPATH}\" to ~/Videos/"
 rsync -avP --progress --inplace "dl:${FILEPATH}" ~/Videos/
