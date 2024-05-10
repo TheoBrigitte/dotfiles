@@ -16,7 +16,6 @@ alias kon="kubeon -g"
 alias kc="kubectl config current-context"
 alias kgp="kubectl get pods"
 alias kss="kns kube-system"
-alias kg='kubectl -n=giantswarm'
 alias ks='kubectl -n=kube-system'
 alias km='kubectl -n=monitoring'
 alias kd='kubectl -n=default'
@@ -49,6 +48,13 @@ alias gls='gll --stat'
 alias gpf='gp -f'
 alias gds='git diff --stat $(git merge-base --fork-point origin/master)'
 
+# giantswarm
+alias kg='kubectl -n=giantswarm'
+alias kf='kubectl -n=flux-giantswarm'
+alias glc='kubectl gs get clusters -A'
+alias gi='cd $GOPATH/src/github.com/giantswarm'
+alias oli='opsctl list installations'
+
 # text
 alias standup="vim +'normal G' +'r!date' +'normal o' +startinsert ~/standup.txt"
 alias todo="vim ~/TODO.md"
@@ -62,9 +68,7 @@ alias watch="watch "
 alias clip="xclip -sel clip -i"
 alias pmo='cd -P prometheus-meta-operator'
 alias vpa='cd -P vertical-pod-autoscaler-app'
-alias gi='cd $GOPATH/src/github.com/giantswarm'
 alias theo='cd $GOPATH/src/github.com/TheoBrigitte'
-alias glc='kubectl gs get clusters -A'
 alias vi='nvim'
 alias vim='nvim'
 alias bl='kubectl neat | bat -lyaml'
