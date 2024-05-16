@@ -72,7 +72,10 @@ if [[ "$option" == "-i" ]]; then
 	interactive=true
 fi
 
+organization="${USER}"
+
 echo "> name: $cluster_name"
+echo "> organization: $organization"
 
 echo -n "> installation: "
 installation=$(get_installation $interactive)
@@ -111,21 +114,56 @@ fi
 echo "$zone"
 
 set -ex
-kubectl gs template cluster \
-	--provider "$provider" \
-	--release "$release" \
-	--name "$cluster_name" \
-	--organization giantswarm \
-	--description "$cluster_name test cluster" \
-	| kubectl $action -f -
 
-kubectl-gs template nodepool --provider "$provider" \
-	--release "$release" \
-	--cluster-name "$cluster_name" \
-	--availability-zones "$zone" \
-	--organization giantswarm \
-	--description "$cluster_name nodepool" \
-	| kubectl $action -f -
+case "$action" in
+  "apply")
+    kubectl gs template organization \
+      --name "$organization" \
+      | kubectl $action -f - || echo 1
+
+    kubectl gs template cluster \
+      --provider "$provider" \
+      --release "$release" \
+      --name "$cluster_name" \
+      --organization "$organization" \
+      --description "$cluster_name test cluster" \
+      | kubectl $action -f -
+
+    kubectl-gs template nodepool --provider "$provider" \
+      --release "$release" \
+      --cluster-name "$cluster_name" \
+      --availability-zones "$zone" \
+      --organization "$organization" \
+      --description "$cluster_name nodepool" \
+      | kubectl $action -f -
+    ;;
+  "delete")
+    kubectl-gs template nodepool --provider "$provider" \
+      --release "$release" \
+      --cluster-name "$cluster_name" \
+      --availability-zones "$zone" \
+      --organization "$organization" \
+      --description "$cluster_name nodepool" \
+      | kubectl $action -f - || echo 1
+
+    kubectl gs template cluster \
+      --provider "$provider" \
+      --release "$release" \
+      --name "$cluster_name" \
+      --organization "$organization" \
+      --description "$cluster_name test cluster" \
+      | kubectl $action -f - || echo 1
+
+    kubectl gs template organization \
+      --name "$organization" \
+      | kubectl $action --wait=false -f - || echo 1
+    ;;
+  *)
+    echo "invalid action: $action"
+    exit 1
+    ;;
+esac
+
 set +x
 
 echo "> success"
