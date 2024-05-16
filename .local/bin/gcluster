@@ -96,11 +96,15 @@ provider=$(opsctl show installation -i "$installation" | yq -r .Provider)
 echo "$provider"
 
 echo -n "> release: "
-release=$(get_release $interactive)
-if [[ -z "$release" ]]; then
-	echo "not found!"
-	echo "> stopping"
-	exit 0
+release_arg=""
+if [[ ! "$provider" =~ ^cap.+ ]]; then
+  release=$(get_release $interactive)
+  if [[ -z "$release" ]]; then
+    echo "not found!"
+    echo "> stopping"
+    exit 0
+  fi
+  release_arg="--release $release"
 fi
 echo "$release"
 
@@ -123,28 +127,32 @@ case "$action" in
 
     kubectl gs template cluster \
       --provider "$provider" \
-      --release "$release" \
+      $release_arg \
       --name "$cluster_name" \
       --organization "$organization" \
       --description "$cluster_name test cluster" \
       | kubectl $action -f -
 
-    kubectl-gs template nodepool --provider "$provider" \
-      --release "$release" \
-      --cluster-name "$cluster_name" \
-      --availability-zones "$zone" \
-      --organization "$organization" \
-      --description "$cluster_name nodepool" \
-      | kubectl $action -f -
+    if [[ ! "$provider" =~ ^cap.+ ]]; then
+      kubectl-gs template nodepool --provider "$provider" \
+        $release_arg \
+        --cluster-name "$cluster_name" \
+        --availability-zones "$zone" \
+        --organization "$organization" \
+        --description "$cluster_name nodepool" \
+        | kubectl $action -f -
+    fi
     ;;
   "delete")
-    kubectl-gs template nodepool --provider "$provider" \
-      --release "$release" \
-      --cluster-name "$cluster_name" \
-      --availability-zones "$zone" \
-      --organization "$organization" \
-      --description "$cluster_name nodepool" \
-      | kubectl $action -f - || echo 1
+    if [[ ! "$provider" =~ ^cap.+ ]]; then
+      kubectl-gs template nodepool --provider "$provider" \
+        --release "$release" \
+        --cluster-name "$cluster_name" \
+        --availability-zones "$zone" \
+        --organization "$organization" \
+        --description "$cluster_name nodepool" \
+        | kubectl $action -f - || echo 1
+    fi
 
     kubectl gs template cluster \
       --provider "$provider" \
