@@ -58,24 +58,60 @@ Arguments
         exit 1
 fi
 
-if [[ $# -ge 3 ]]; then
-	option="$1"
-	action="$2"
-	cluster_name=${3:-$USER}
-else
-	action="$1"
-	cluster_name=${2:-$USER}
-fi
-
 interactive=false
-if [[ "$option" == "-i" ]]; then
-	interactive=true
-fi
+until=$(date --utc +"%Y-%m-%d")
+
+ARGS=$(getopt -o 'iu:' --long 'interactive,until:' -- "$@")
+eval set -- "$ARGS"
+
+while true; do
+  case "$1" in
+    '--interactive')
+      interactive=true
+      shift
+      continue
+      ;;
+    '-u'|'--until')
+      until=$(date -d "$2" --utc +"%Y-%m-%d")
+      shift 2
+      continue
+      ;;
+    '--')
+      shift
+      break
+      ;;
+    *)
+      exit_error 'Internal error!'
+      ;;
+  esac
+done
+action=${@:$OPTIND:1}
+shift
+
+cluster_name=${@:$OPTIND:1}
+cluster_name=${cluster_name:-$USER}
+shift
 
 organization="${USER}"
 
 echo "> name: $cluster_name"
 echo "> organization: $organization"
+
+cluster_namespace=$(kubectl get cl -Algiantswarm.io/cluster=theo01 -oyaml|yq -r '.items[0].metadata.namespace')
+
+case "$action" in
+  "status")
+    clusterctl describe cluster "$cluster_name" --namespace="$cluster_namespace" --show-conditions=all
+    exit
+    ;;
+  "keep")
+    kubectl label cluster "$cluster_name" \
+      --namespace="$cluster_namespace" \
+      --overwrite=true \
+      keep-until="$until"
+    exit
+    ;;
+esac
 
 echo -n "> installation: "
 installation=$(get_installation $interactive)
