@@ -153,10 +153,9 @@ if [[ -z "$zone" ]] || [[ "$zone" == "null" ]]; then
 fi
 echo "$zone"
 
-set -ex
-
 case "$action" in
   "apply")
+    set -ex
     kubectl gs template organization \
       --name "$organization" \
       | kubectl $action -f - || echo 1
@@ -180,6 +179,7 @@ case "$action" in
     fi
     ;;
   "delete")
+    set -ex
     if [[ ! "$provider" =~ ^cap.+ ]]; then
       kubectl-gs template nodepool --provider "$provider" \
         --release "$release" \
@@ -187,7 +187,7 @@ case "$action" in
         --availability-zones "$zone" \
         --organization "$organization" \
         --description "$cluster_name nodepool" \
-        | kubectl $action -f - || echo 1
+        | kubectl $action --ignore-not-found=true -f - || echo 1
     fi
 
     kubectl gs template cluster \
@@ -196,11 +196,7 @@ case "$action" in
       --name "$cluster_name" \
       --organization "$organization" \
       --description "$cluster_name test cluster" \
-      | kubectl $action -f - || echo 1
-
-    kubectl gs template organization \
-      --name "$organization" \
-      | kubectl $action --wait=false -f - || echo 1
+      | kubectl $action --ignore-not-found=true -f - || echo 1
     ;;
   *)
     echo "invalid action: $action"
