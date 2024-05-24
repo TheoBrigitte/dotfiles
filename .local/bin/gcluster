@@ -97,7 +97,7 @@ organization="${USER}"
 echo "> name: $cluster_name"
 echo "> organization: $organization"
 
-cluster_namespace=$(kubectl get cl -Algiantswarm.io/cluster=theo01 -oyaml|yq -r '.items[0].metadata.namespace')
+cluster_namespace=$(kubectl get cl -Algiantswarm.io/cluster=$cluster_name -oyaml|yq -r '.items[0].metadata.namespace')
 
 case "$action" in
   "status")
