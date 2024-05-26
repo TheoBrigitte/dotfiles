@@ -17,13 +17,13 @@ get_installation() {
 get_release() {
 	interactive=${1:-false}
 
-	releases=$(kubectl get release --sort-by .spec.date -oyaml)
-	len=$(echo "$releases" | yq -r '.items | length')
+	releases=$(kubectl get release --sort-by .spec.date -ojson)
+	len=$(echo "$releases" | jq -r '.items | length')
 	release_candidates=()
 	for (( i=$len-1; i>=0; i-- )); do
-		name=$(echo "$releases" | yq -r ".items[$i].metadata.name")
-		state=$(echo "$releases" | yq -r ".items[$i].spec.state")
-		ready=$(echo "$releases" | yq -r ".items[$i].status.ready")
+		name=$(echo "$releases" | jq -r ".items[$i].metadata.name")
+		state=$(echo "$releases" | jq -r ".items[$i].spec.state")
+		ready=$(echo "$releases" | jq -r ".items[$i].status.ready")
 		#echo -e "> name  : $name\n  active: $state\n  ready : $ready"
 		if echo "$name" | grep -vq "-" && [[ "$ready" == "true" ]]; then
 			if $interactive; then
@@ -97,7 +97,7 @@ organization="${USER}"
 echo "> name: $cluster_name"
 echo "> organization: $organization"
 
-cluster_namespace=$(kubectl get cl -Algiantswarm.io/cluster=$cluster_name -oyaml|yq -r '.items[0].metadata.namespace')
+cluster_namespace=$(kubectl get cl -Algiantswarm.io/cluster=$cluster_name -ojson|jq -r '.items[0].metadata.namespace')
 
 case "$action" in
   "status")
@@ -128,7 +128,7 @@ fi
 echo "$installation"
 
 echo -n "> provider: "
-provider=$(opsctl show installation -i "$installation" | yq -r .Provider)
+provider=$(opsctl show installation -i "$installation" -ojson | jq -r .Provider)
 echo "$provider"
 
 echo -n "> release: "
@@ -145,7 +145,7 @@ fi
 echo "$release"
 
 echo -n "> availability zone: "
-zone=$(kubectl get node -oyaml | yq -r '.items[0].metadata.labels["topology.kubernetes.io/zone"]')
+zone=$(kubectl get node -ojson | jq -r '.items[0].metadata.labels["topology.kubernetes.io/zone"]')
 if [[ -z "$zone" ]] || [[ "$zone" == "null" ]]; then
 	echo "not found!"
 	echo "> stopping"
