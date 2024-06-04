@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
 
+# Helper function - prints a message to stderr
+echo_stderr() {
+    >&2 echo "$@"
+}
+
+# Helper function - prints an error message and exits
+exit_error() {
+    echo_stderr "Error: $1"
+    exit 1
+}
+
 get_installation() {
 	interactive=${1:-false}
 
@@ -49,7 +60,9 @@ if [[ "$1" == "-h" ]] || [[ $# -lt 1 ]]; then
 Manage giantswarm CAPI clusters.
 
 Options
-        -i        interactive mode (select release)
+    -i           interactive mode (select release)
+    -u|--until   keep cluster until date (default: today)
+    --nodes-max  maximum number of cluster nodes (default: 10)
 
 Arguments
 
@@ -59,9 +72,10 @@ Arguments
 fi
 
 interactive=false
+nodes_max=10
 until=$(date --utc +"%Y-%m-%d")
 
-ARGS=$(getopt -o 'iu:' --long 'interactive,until:' -- "$@")
+ARGS=$(getopt -o 'iu:' --long 'interactive,nodes-max:,until:' -- "$@")
 eval set -- "$ARGS"
 
 while true; do
@@ -69,6 +83,11 @@ while true; do
     '--interactive')
       interactive=true
       shift
+      continue
+      ;;
+    '--nodes-max')
+      nodes_max=$2
+      shift 2
       continue
       ;;
     '-u'|'--until')
@@ -94,12 +113,16 @@ shift
 
 organization="${USER}"
 
-echo "> name: $cluster_name"
-echo "> organization: $organization"
+#echo "> name: $cluster_name"
+#echo "> organization: $organization"
 
 cluster_namespace=$(kubectl get cl -Algiantswarm.io/cluster=$cluster_name -ojson|jq -r '.items[0].metadata.namespace')
 
 case "$action" in
+  "list")
+    kubectl gs get clusters -A
+    exit
+    ;;
   "status")
     clusterctl describe cluster "$cluster_name" --namespace="$cluster_namespace" --show-conditions=all
     exit
@@ -175,6 +198,7 @@ case "$action" in
         --availability-zones "$zone" \
         --organization "$organization" \
         --description "$cluster_name nodepool" \
+        --nodes-max "$nodes_max" \
         | kubectl $action -f -
     fi
     ;;
@@ -187,7 +211,8 @@ case "$action" in
         --availability-zones "$zone" \
         --organization "$organization" \
         --description "$cluster_name nodepool" \
-        | kubectl $action --ignore-not-found=true -f - || echo 1
+        --nodes-max "$nodes_max" \
+        | kubectl $action --wait=false --ignore-not-found=true -f - || echo 1
     fi
 
     kubectl gs template cluster \
@@ -196,7 +221,7 @@ case "$action" in
       --name "$cluster_name" \
       --organization "$organization" \
       --description "$cluster_name test cluster" \
-      | kubectl $action --ignore-not-found=true -f - || echo 1
+      | kubectl $action --wait=false --ignore-not-found=true -f - || echo 1
     ;;
   *)
     echo "invalid action: $action"
