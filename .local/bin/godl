@@ -1,0 +1,13 @@
+#!/bin/bash
+
+set -eu
+
+if [ $# -eq 1 ]; then
+	VERSION="$1"
+else
+	VERSION=$(git ls-remote --tags --sort version:refname https://github.com/golang/go.git|awk '{print $2}'|cut -d/ -f3|grep -E 'go[0-9]+'|fzf --tac)
+fi
+
+echo "> downloading golang ${VERSION} to ${GOBIN}/${VERSION}"
+go install "golang.org/dl/${VERSION}@latest"
+${VERSION} download
