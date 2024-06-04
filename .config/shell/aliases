@@ -47,6 +47,7 @@ alias glp='git log -p'
 alias gls='gll --stat'
 alias gpf='gp -f'
 alias gds='git diff --stat $(git merge-base --fork-point origin/master)'
+alias gra='git remote set-head origin --auto'
 
 # giantswarm
 alias kg='kubectl -n=giantswarm'
