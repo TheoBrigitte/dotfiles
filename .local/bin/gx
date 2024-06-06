@@ -34,7 +34,7 @@ CONTEXT_MATCHER="${INSTALLATION}$"
 values_length=${#values[@]}
 if [ $values_length -ge 2 ]; then
   CLUSTER="${values[$values_length-1]}"
-  CONTEXT_MATCHER="${CLUSTER}"
+  CONTEXT_MATCHER="${INSTALLATION}-${CLUSTER}"
 fi
 
 CONTEXT_NAME=$(kubectl config get-contexts -oname | grep "${CONTEXT_MATCHER}" | head -n1)
