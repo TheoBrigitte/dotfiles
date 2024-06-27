@@ -63,6 +63,7 @@ Options
     -i           interactive mode (select release)
     -u|--until   keep cluster until date (default: today)
     --nodes-max  maximum number of cluster nodes (default: 10)
+    --nodes-min  minimum number of cluster nodes (default: 3)
 
 Arguments
 
@@ -73,9 +74,10 @@ fi
 
 interactive=false
 nodes_max=10
+nodes_min=3
 until=$(date --utc +"%Y-%m-%d")
 
-ARGS=$(getopt -o 'iu:' --long 'interactive,nodes-max:,until:' -- "$@")
+ARGS=$(getopt -o 'iu:' --long 'interactive,nodes-max:,nodes-min:,until:' -- "$@")
 eval set -- "$ARGS"
 
 while true; do
@@ -87,6 +89,11 @@ while true; do
       ;;
     '--nodes-max')
       nodes_max=$2
+      shift 2
+      continue
+      ;;
+    '--nodes-min')
+      nodes_min=$2
       shift 2
       continue
       ;;
@@ -199,6 +206,7 @@ case "$action" in
         --organization "$organization" \
         --description "$cluster_name nodepool" \
         --nodes-max "$nodes_max" \
+        --nodes-min "$nodes_min" \
         | kubectl $action -f -
     fi
     ;;
