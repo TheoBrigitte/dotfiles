@@ -1,0 +1,9 @@
+pkg/
+Videos/
+.zoom/
+.cache/
+.slack/
+.cargo/
+.npm/
+.ethereum/
+.bitcoin/
