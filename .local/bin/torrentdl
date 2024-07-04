@@ -18,6 +18,7 @@ Search for torrents in configured torrent tracker(s) and download selected resul
     query               query torrent tracker(s) for torrent search results
     start               start Jackett
     stop                stop Jackett
+    status              show Jackett status
     create-config       create a sample config.env file
 
   argument:
@@ -47,7 +48,7 @@ run_query() {
   # Query Jackett for torrent search results from torrent tracker
   curl "http://127.0.0.1:9117/api/v2.0/indexers/all/results?apikey=$JACKETT_API_KEY&Query=$QUERY" \
     --connect-timeout 5 \
-    --max-time 10 | \
+    --max-time 20 | \
   #cat results.json |\
     # Format JSON results as TSV (table separated columns), sort results by most downloads (aka. Grabs), add headers, and format date as date only.
     jq -r 'include "bytes" {"search": "'"$CONFIG_DIR"'"}; (["COMPLETE", "SEEDERS", "PEERS", "SIZE", "CATEGORY", "DATE", "TITLE", "LINK"]), (.Results | sort_by(.Grabs) | reverse | .[] | select(.CategoryDesc | test("^Movies")) | [ .Grabs, .Seeders, .Peers, (.Size | bytes), .CategoryDesc, (.PublishDate|strptime("%Y-%m-%dT%H:%M:%S%z")|strftime("%Y-%m-%d")), .Title, .Link ]) | @tsv'  | \
@@ -87,6 +88,11 @@ run_start() {
 run_stop() {
   cd "$CONFIG_DIR"
   docker-compose down
+}
+
+run_status() {
+  cd "$CONFIG_DIR"
+  docker-compose ls
 }
 
 run_create_config() {
@@ -134,6 +140,9 @@ main() {
       ;;
     stop)
       run_stop "$@"
+      ;;
+    status)
+      run_status "$@"
       ;;
     create-config)
       run_create_config "$@"
