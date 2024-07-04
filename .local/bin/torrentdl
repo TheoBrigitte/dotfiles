@@ -1,0 +1,148 @@
+#!/bin/bash
+
+set -eu
+
+CONFIG_DIR="$HOME/.config/torrentdl"
+
+usage() {
+	echo "Usage: $(basename $0) [-h] <action>
+Search for torrents in configured torrent tracker(s) and download selected result using remote transmission server.
+
+- Tracker(s) are configured via Jackett UI : http://127.0.0.1:9117/UI/Dashboard
+- Jackett configuration is stored at       : $CONFIG_DIR/Jackett
+- Script configuration is stored at        : $CONFIG_DIR/config.env
+
+  -h | help             print this help
+
+  action:
+    query               query torrent tracker(s) for torrent search results
+    start               start Jackett
+    stop                stop Jackett
+    create-config       create a sample config.env file
+
+  argument:
+    <query>             search query sent to torrent tracker(s)"
+}
+
+run_query() {
+  QUERY="${1-}"
+  if [ -z "$QUERY" ]; then
+    usage
+    exit 1
+  fi
+  shift
+
+  echo "/!\ This might fail due to fail2ban ban as transmission-remote send many unauthenticated requests"
+  echo "    Also don't forget to start jacket with: docker-compose up --wait"
+  echo
+
+  source "$CONFIG_DIR/config.env"
+
+  # Category used to filter results from Jackett.
+  # TOOD: might also filter when querying Jackett for better performances
+  CATEGORY_FILTER="Movies*"
+  TMP_FILE="$(mktemp -t torrentdl.download.XXXXXX)"
+
+  echo "> Fetching results for \"$QUERY\""
+  # Query Jackett for torrent search results from torrent tracker
+  curl "http://127.0.0.1:9117/api/v2.0/indexers/all/results?apikey=$JACKETT_API_KEY&Query=$QUERY" \
+    --connect-timeout 5 \
+    --max-time 10 | \
+  #cat results.json |\
+    # Format JSON results as TSV (table separated columns), sort results by most downloads (aka. Grabs), add headers, and format date as date only.
+    jq -r 'include "bytes" {"search": "'"$CONFIG_DIR"'"}; (["COMPLETE", "SEEDERS", "PEERS", "SIZE", "CATEGORY", "DATE", "TITLE", "LINK"]), (.Results | sort_by(.Grabs) | reverse | .[] | select(.CategoryDesc | test("^Movies")) | [ .Grabs, .Seeders, .Peers, (.Size | bytes), .CategoryDesc, (.PublishDate|strptime("%Y-%m-%dT%H:%M:%S%z")|strftime("%Y-%m-%d")), .Title, .Link ]) | @tsv'  | \
+    # Format columns with tab as separator
+    column -ts $'\t' | \
+    # Run FZF with TITLE as search field (8th to 2nd from last column), sticky header, keep results sorted by downloads
+    fzf --no-sort --nth 8..-2 --height=80% --header-lines=1 --layout=reverse --preview='echo {}' --preview-window=down,3,wrap -0 | \
+    # Print link to torrent file only (last field)
+    awk -F ' ' '{print $NF}' | \
+    # Download torrent file to temporary file
+    xargs curl -Lo "$TMP_FILE"
+
+    echo
+    echo "> Adding torrent to transmission"
+    transmission-remote "$TR_URL" --authenv -a "$TMP_FILE"
+
+    echo
+    # Parse torrent name from torrent file
+    NAME="$(transmission-show "$TMP_FILE" -I -T -F | head -n1 | cut -d:  -f2- | xargs)"
+    echo "> Show torrent info for \"$NAME\""
+    # Fetch transmission torrent ID from transmission
+    ID="$(transmission-remote "$TR_URL" --authenv -F "n:$NAME" -ids | cut -d, -f1)"
+    if [ "$ID" == "all" ]; then
+      echo "Failed to find torrent ID"
+      exit 1
+    fi
+
+  # Print torrent information (includes transfer info)
+  transmission-remote "$TR_URL" --authenv -t "$ID" -i
+}
+
+run_start() {
+  cd "$CONFIG_DIR"
+  docker-compose up --wait
+}
+
+run_stop() {
+  cd "$CONFIG_DIR"
+  docker-compose down
+}
+
+run_create_config() {
+  test -e config.env && (echo 'config.env already exist'; exit 1)
+  cat <<EOF > config.env
+export JACKETT_API_KEY=<Jackett API Key>
+export TR_AUTH="transmission_user:transmission_password"
+export TR_URL="https://transmission-host.com/transmission"
+EOF
+  echo "written config.env"
+  echo "edit, replace placeholder values and move it to $CONFIG_DIR/"
+}
+
+main() {
+  # Manage command line arguments
+  while getopts "h?" opt; do
+    case "$opt" in
+      h)
+        usage
+        exit 0
+        ;;
+      ?)
+        usage
+        exit 1
+        ;;
+    esac
+  done
+  shift $(expr $OPTIND - 1 )
+
+  ACTION="${1-}"
+  if [ -z "$ACTION" ]; then
+    usage
+    exit 1
+  fi
+  shift
+
+  mkdir -p "$CONFIG_DIR"
+
+  case "$ACTION" in
+    query)
+      run_query "$@"
+      ;;
+    start)
+      run_start "$@"
+      ;;
+    stop)
+      run_stop "$@"
+      ;;
+    create-config)
+      run_create_config "$@"
+      ;;
+    *)
+      usage
+      exit 1
+      ;;
+  esac
+}
+
+main "$@"
