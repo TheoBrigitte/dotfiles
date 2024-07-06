@@ -1,0 +1,12 @@
+[Unit]
+Description=Change wallpaper with an image from NASA
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/theo
+Environment=XDG_CURRENT_DESKTOP=XFCE
+Environment=XDG_RUNTIME_DIR=/run/user/1000
+ExecStart=/usr/bin/nasa-wallpaper apod
+
+[Install]
+WantedBy=default.target
