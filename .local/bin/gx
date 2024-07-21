@@ -37,12 +37,13 @@ if [ $values_length -ge 2 ]; then
   CONTEXT_MATCHER="${INSTALLATION}-${CLUSTER}"
 fi
 
-CONTEXT_NAME=$(kubectl config get-contexts -oname | grep "${CONTEXT_MATCHER}")
-for c in $CONTEXT_NAME; do
-  timeout 3s kubectl --context "${c}" get nodes &>/dev/null && \
-    kubectx "${c}" && \
-    exit 0
-done
+if CONTEXTS=$(kubectl config get-contexts -oname | grep "${CONTEXT_MATCHER}"); then
+  for c in $CONTEXTS; do
+    timeout 3s kubectl --context "${c}" get nodes &>/dev/null && \
+      kubectx "${c}" && \
+      exit 0
+    done
+fi
 
 (
 	set -ex
