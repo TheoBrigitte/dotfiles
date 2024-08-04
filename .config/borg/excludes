@@ -1,0 +1,41 @@
+/home/theo/Videos
+/home/theo/.local/share/Trash/files
+/home/theo/.local/lib
+
+# Applications
+/home/theo/.bitcoin
+/home/theo/.ethereum
+/home/theo/.config/molotov
+/home/theo/.slack
+/home/theo/.zoom
+
+# Web browsers
+/home/theo/.config/chromium/*/Extensions
+/home/theo/.config/google-chrome/*/Extensions
+/home/theo/.mozilla/firefox/*/datareporting
+
+# Giantswarm
+/home/theo/.config/opsctl/pkg
+/home/theo/.config/opsctl/github.com
+
+# Dev tools
+/home/theo/.cargo
+/home/theo/.docker/buildx
+/home/theo/.npm
+
+# Projects (backup everything)
++ /home/theo/projects/**
+
+# Golang (only backup sources)
+/home/theo/pkg
+/home/theo/sdk
+/home/theo/src/**/vendor
++ /home/theo/src/**
+
+# Cache
+/home/theo/.cache
+*Cache
+*Caches
+*/Code Cache
+*/GPUCache
+*/Service Worker
