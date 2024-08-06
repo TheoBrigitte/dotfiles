@@ -1,8 +1,9 @@
 [Unit]
 Description=Change wallpaper with an image from NASA
+After=display-manager.service
 
 [Service]
-Type=oneshot
+Type=exec
 WorkingDirectory=/home/theo
 Environment=XDG_CURRENT_DESKTOP=XFCE
 Environment=XDG_RUNTIME_DIR=/run/user/1000
