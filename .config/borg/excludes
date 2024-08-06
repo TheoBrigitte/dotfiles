@@ -8,6 +8,8 @@
 /home/theo/.config/molotov
 /home/theo/.slack
 /home/theo/.zoom
+/home/theo/.config/google-chrome
+/home/theo/.config/chromium
 
 # Web browsers
 /home/theo/.config/chromium/*/Extensions
