@@ -420,7 +420,7 @@ keep_monthly: 6
 
 # Apply color to console output. Can be overridden with --no-color
 # command-line flag. Defaults to true.
-# color: false
+color: false
 
 # List of one or more actions to skip running for this configuration
 # file, even if specified on the command-line (explicitly or
