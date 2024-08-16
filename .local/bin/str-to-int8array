@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Print hey
+#printf "%s" hey |
+# convert to hex one per line
+xxd -p -c 1 |
+# convert to decimal one per line
+xargs -I{} printf "%d\n" 0x{} |
+# Join lines with comma
+paste -sd, |
+# Add spaces after comma
+#sed 's/,/, /g' |
+# Add [ ]
+{ echo -n '['; tr -d '\n'; echo ']'; }
+# echo "[$(cat)]"
