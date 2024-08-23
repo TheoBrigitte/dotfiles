@@ -25,7 +25,7 @@ get_installation() {
 	return
 }
 
-get_release() {
+get_release_vintage() {
 	interactive=${1:-false}
 
 	releases=$(kubectl get release --sort-by .spec.date -ojson)
@@ -41,6 +41,36 @@ get_release() {
 				release_candidates+=("$name")
 			else
 				echo "$name"
+				return
+			fi
+		fi
+	done
+
+	if $interactive && [[ ${#release_candidates[@]} -gt 0 ]]; then
+		name=$(printf '%s\n' "${release_candidates[@]}" | fzf)
+		echo "$name"
+	fi
+
+	return
+}
+
+get_release_capi() {
+	interactive=${1:-false}
+
+	releases=$(kubectl get release --sort-by .spec.date -ojson)
+	len=$(echo "$releases" | jq -r '.items | length')
+	release_candidates=()
+	for (( i=$len-1; i>=0; i-- )); do
+		name=$(echo "$releases" | jq -r ".items[$i].metadata.name")
+		state=$(echo "$releases" | jq -r ".items[$i].spec.state")
+		ready=$(echo "$releases" | jq -r ".items[$i].status.ready")
+		#echo -e "> name  : $name\n  active: $state\n  ready : $ready"
+    if [ $(echo "$name" | grep -o - | wc -l) -lt 2 ] && [[ "$state" == "active" ]]; then
+      release_name="$(echo "$name" | cut -d- -f2)"
+			if $interactive; then
+				release_candidates+=("$release_name")
+			else
+				echo "$release_name"
 				return
 			fi
 		fi
@@ -164,7 +194,15 @@ echo "$provider"
 echo -n "> release: "
 release_arg=""
 if [[ ! "$provider" =~ ^cap.+ ]]; then
-  release=$(get_release $interactive)
+  release=$(get_release_vintage $interactive)
+  if [[ -z "$release" ]]; then
+    echo "not found!"
+    echo "> stopping"
+    exit 0
+  fi
+  release_arg="--release $release"
+else
+  release=$(get_release_capi $interactive)
   if [[ -z "$release" ]]; then
     echo "not found!"
     echo "> stopping"
