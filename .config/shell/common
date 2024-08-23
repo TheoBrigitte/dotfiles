@@ -48,3 +48,12 @@ export OPSCTL_SLACK_TOKEN=$(cat "$HOME/secrets/giantswarm/slack_token")
 
 #export QT_STYLE_OVERRIDE=gtk
 export QT_SELECT=qt5
+
+# colors
+export TERM=xterm-256color
+export BASE16_SHELL="$HOME/.config/base16-shell/"
+[ -n "$PS1" ] && [ -s "$BASE16_SHELL/profile_helper.sh" ] && \
+		source "$BASE16_SHELL/profile_helper.sh"
+# current terminal theme is set at ~/.base16_theme
+# change it with : base16_<theme> command
+# e.g. base16_horizon-terminal-dark

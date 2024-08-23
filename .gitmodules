@@ -1,0 +1,6 @@
+[submodule ".config/base16-shell"]
+	path = .config/base16-shell
+	url = git@github.com:/chriskempson/base16-shell.git
+[submodule ".config/tmux/tinted-tmux"]
+	path = .config/tmux/tinted-tmux
+	url = git@github.com:tinted-theming/tinted-tmux.git
