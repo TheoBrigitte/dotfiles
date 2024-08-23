@@ -1,10 +1,10 @@
-source "$HOME/.config/shell/functions"
+source "$HOME/.config/shell/functions.sh"
 
 # ssh keys
 ssh-add -l &>/dev/null || ssh-add "$HOME/.ssh/theo_rsa" "$HOME/.ssh/giantswarm_rsa" &>/dev/null
 
 # aliases
-source "$HOME/.config/shell/aliases"
+source "$HOME/.config/shell/aliases.sh"
 
 # azure-cli completion
 [ -f "$HOME/.local/lib/azure-cli/az.completion" ] &&\

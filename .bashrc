@@ -30,7 +30,7 @@ build_prompt() {
 [[ $- != *i* ]] && return
 
 # common
-source "$HOME/.config/shell/common"
+source "$HOME/.config/shell/common.sh"
 
 # completion
 source /usr/share/bash-completion/bash_completion
