@@ -34,3 +34,5 @@
 	program = gpg
 [pull]
 	rebase = false
+[init]
+	defaultBranch = main
