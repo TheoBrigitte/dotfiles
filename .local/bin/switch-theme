@@ -20,14 +20,15 @@ THEME_DARK=~/.config/base16-shell/scripts/base16-tomorrow-night.sh
 THEME_LIGHT_NAME="$(get_theme_name "$THEME_LIGHT")"
 THEME_DARK_NAME="$(get_theme_name "$THEME_DARK")"
 
+
 if [ "$CURRENT_THEME_NAME" == "$THEME_DARK_NAME" ]; then
-	  theme_light_name="$(get_theme_name "$THEME_LIGHT")"
-		echo "Switching to light theme ($theme_light_name)"
-		_base16 "$THEME_LIGHT" "$theme_light_name"
-		tmux source ~/.config/tmux/tinted-tmux/colors/base16-${theme_light_name}.conf
+		echo "Switching to light theme ($THEME_LIGHT_NAME)"
+		export BASE16_THEME="$THEME_LIGHT_NAME"
+		_base16 "$THEME_LIGHT" "$THEME_LIGHT_NAME"
+		tmux source ~/.config/tmux/tinted-tmux/colors/base16-${THEME_LIGHT_NAME}.conf
 else
-	  theme_dark_name="$(get_theme_name "$THEME_DARK")"
-		echo "Switching to dark theme ($theme_dark_name)"
-		_base16 "$THEME_DARK" "$theme_dark_name"
-		tmux source ~/.config/tmux/tinted-tmux/colors/base16-${theme_dark_name}.conf
+		echo "Switching to dark theme ($THEME_DARK_NAME)"
+		export BASE16_THEME="$THEME_LIGHT_NAME"
+		_base16 "$THEME_DARK" "$THEME_DARK_NAME"
+		tmux source ~/.config/tmux/tinted-tmux/colors/base16-${THEME_DARK_NAME}.conf
 fi
