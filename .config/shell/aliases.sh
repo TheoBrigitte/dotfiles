@@ -76,3 +76,4 @@ alias bl='kubectl neat | bat -lyaml'
 alias watch='watch '
 alias please='sudo'
 alias hell='helm'
+alias switch-theme="switch-theme.sh; source ~/.config/shell/theme.sh"
