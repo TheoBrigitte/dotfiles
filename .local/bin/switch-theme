@@ -32,3 +32,5 @@ else
 		_base16 "$THEME_DARK" "$THEME_DARK_NAME"
 		tmux source ~/.config/tmux/tinted-tmux/colors/base16-${THEME_DARK_NAME}.conf
 fi
+
+echo "export BASE16_THEME=$BASE16_THEME" > ~/.config/shell/theme.sh
