@@ -6,21 +6,18 @@ set -eu
 #
 # USERNAME is the ssh login name for vpn hosts
 USERNAME="${USER}"
-# CONNECTION_NAMES is a map of connnection short names (used as arguments for this script) and connection names used for NetworkManager
+
+# CONNECTION_NAMES is a map of vpn connnections configuration
+# Keys are connection short names used as arguments by this script
+# Values are a string with the following format:
+#   <name>;<url>;<port>
+# where:
+#   <name> : connection name in NetworkManager
+#   <url>  : ssh url to download OpenVPN configuration file
+#   <port> : ssh port to download OpenVPN configuration file
 declare -A CONNECTION_NAMES=(
-	[vpn]="vpn.giantswarm"
-	[vpn2]="vpn2.giantswarm"
-)
-# Each connection in the CONNECTION_NAMES map needs a corresponding
-# <name>_CONFIG variable holding details where to find the OpenVPN
-# configuration file.
-declare -A VPN_CONFIG=(
-	[url]="${USERNAME}@vpn.giantswarm.io:${USERNAME}.ovpn"
-	[port]=2222
-)
-declare -A VPN2_CONFIG=(
-	[url]="${USERNAME}@vpn2.giantswarm.io:${USERNAME}.ovpn"
-	[port]=2222
+	[vpn]="vpn.giantswarm;${USERNAME}@vpn.giantswarm.io:${USERNAME}.ovpn;2222"
+	[vpn2]="vpn2.giantswarm;${USERNAME}@vpn2.giantswarm.io:${USERNAME}.ovpn;2222"
 )
 
 # Functions
@@ -44,7 +41,7 @@ Arguments
 }
 
 # get_connection return a single connection name
-# (optional) $1 is the vpn connection name prefix
+# (optional) $1 is the vpn connection short name
 get_connection() {
 	connection_name="${1:-vpn}"
 	if [[ -v "CONNECTION_NAMES[$connection_name]" ]]; then
@@ -66,7 +63,10 @@ if [ $# -gt 0 ]; then shift; fi
 
 # status print current status for all vpn connections
 if [ "${ACTION}" == "status" ]; then
-	for connection in $(list_connections); do
+	for connection_name in "${!CONNECTION_NAMES[@]}"; do
+		readarray -d ';' -t config < <(echo -n "${CONNECTION_NAMES[$connection_name]}")
+		connection="${config[0]}"
+
 		# OpenVPN process status
 		if [ -f "/var/run/${connection}.pid" ]; then
 			pid="$(cat "/var/run/${connection}.pid")"
@@ -82,7 +82,7 @@ if [ "${ACTION}" == "status" ]; then
 		else
 			nm_status="not-configured"
 		fi
-		echo -e "> ${connection}\t${openvpn_status}  \tconnection=${nm_status}\tpid=${pid}"
+		echo -e "> ${connection_name}\t${openvpn_status}  \tconnection=${nm_status}\tpid=${pid}"
 	done
 
 	exit 0
@@ -396,7 +396,8 @@ if [ "${ACTION}" == "update-config" ]; then
 	mkdir -p ~/.config/vpn
 
 	for connection_name in "${!CONNECTION_NAMES[@]}"; do
-		connection="${CONNECTION_NAMES[$connection_name]}"
+		readarray -d ';' -t config < <(echo -n "${CONNECTION_NAMES[$connection_name]}")
+		connection="${config[0]}"
 
 		echo "> update-config for ${connection}"
 
@@ -408,11 +409,8 @@ if [ "${ACTION}" == "update-config" ]; then
 		fi
 
 		# Get new connection config
-		config_var="${connection_name^^}_CONFIG"
-		config_url="${config_var}[url]"
-		config_port="${config_var}[port]"
-		url=${!config_url}
-		port=${!config_port}
+		url="${config[1]}"
+		port="${config[2]}"
 
 		echo "  get connection config from ${url}"
 		scp -qP "$port" "${url}" ~/.config/vpn/${connection}.conf
