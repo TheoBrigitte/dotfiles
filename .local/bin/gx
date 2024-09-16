@@ -2,71 +2,84 @@
 
 set -eu
 
+# Cache directory and file
 CACHE_DIR="${HOME}/.cache/gx"
 TSH_CACHE="${CACHE_DIR}/tsh_kube_ls.json"
 
+# Print usage
 print_usage() {
-  echo "Usage:
-  $(basename $0) <installation> [ <separator> <cluster> ]
+  echo "Usage: $(basename $0) <installation> [ <separator> <cluster> ]
 
 Create kubeconfig for the given cluster or installation.
 
-  <installation>	installation name
-  <separator>		can be any non alphanum character
-  <cluster>		cluster name"
+  <installation>  installation name
+  <separator>     any non alphanumeric character
+  <cluster>       cluster name"
 }
 
+main() {
+  if [ $# -lt 1 ] || [ "$1" == "-h" ]; then
+    print_usage
+    exit 0
+  fi
 
-if [ $# -lt 1 ] || [ "$1" == "-h" ]; then
-  print_usage
-  exit 0
-fi
+  # Arguments
 
-# Arguments
+  # replace separator with space
+  args=$(echo -n "$@" | sed -e 's/[^[:alnum:]]/ /1')
 
-# replace / separator with space.
-args=$(echo -n "$@" | sed -e 's/[^[:alnum:]]/ /1')
+  # split words on spaces
+  values=($args)
 
-# bash will split words on spaces.
-values=($args)
+  # installation is always the first value
+  installation="${values[0]}"
+  cluster=""
 
-INSTALLATION="${values[0]}"
-CLUSTER=""
-CONTEXT_MATCHER="${INSTALLATION}$"
-TSH_MATCHER="${INSTALLATION}"
+  # context_match is used to filter kubectl contexts by regex
+  context_matcher="${installation}$"
+  # tsh_matcher is used to filter tsh clusters by name
+  tsh_matcher="${installation}"
 
-values_length=${#values[@]}
-if [ $values_length -ge 2 ]; then
-  CLUSTER="${values[$values_length-1]}"
-  CONTEXT_MATCHER="${INSTALLATION}-${CLUSTER}"
-  TSH_MATCHER="${INSTALLATION}-${CLUSTER}"
-fi
+  # if there are more than 2 values, the last one is the cluster
+  values_length=${#values[@]}
+  if [ $values_length -ge 2 ]; then
+    cluster="${values[$values_length-1]}"
+    context_matcher="${installation}-${cluster}"
+    tsh_matcher="${installation}-${cluster}"
+  fi
 
-if CONTEXTS=$(kubectl config get-contexts -oname | grep "${CONTEXT_MATCHER}"); then
-  for c in $CONTEXTS; do
-    timeout 3s kubectl --context "${c}" get nodes &>/dev/null && \
-      kubectx "${c}" && \
-      exit 0
-    done
-fi
+  # Check if the kubectl context already exists
+  if CONTEXTS=$(kubectl config get-contexts -oname | grep "${context_matcher}"); then
+    for c in $CONTEXTS; do
+      # Test if the context is valid and switch to it if it is
+      timeout 3s kubectl --context "${c}" get nodes &>/dev/null && \
+        kubectx "${c}" && \
+        exit 0
+      done
+  fi
 
-mkdir -p "${CACHE_DIR}"
-expiry="$(date -d '- 5 minutes' +%s)"
+  # Download and cache tsh clusters
+  mkdir -p "${CACHE_DIR}"
+  expiry="$(date -d '- 5 minutes' +%s)"
+  if [ ! -f "${TSH_CACHE}" ] || [ "$(stat --printf=%Y "${TSH_CACHE}")" -le "$expiry" ]; then
+    tsh kube ls --format json > "${TSH_CACHE}"
+  fi
 
-if [ ! -f "${TSH_CACHE}" ] || [ "$(stat --printf=%Y "${TSH_CACHE}")" -le "$expiry" ]; then
-  tsh kube ls --format json > "${TSH_CACHE}"
-fi
+  # Check if the cluster exists in tsh
+  tsh_ok="$(jq '.[] | select(.kube_cluster_name == "'"$tsh_matcher"'") | true' "${TSH_CACHE}")"
 
-tsh_ok="$(jq '.[] | select(.kube_cluster_name == "'"$TSH_MATCHER"'") | true' "${TSH_CACHE}")"
+  # Use tsh or opsctl to login
+  command=""
+  if [ "$tsh_ok" == "true" ]; then
+    command="tsh kube login "${tsh_matcher}""
+  else
+    command="opsctl login "${installation}" "${cluster}""
+  fi
 
-command=""
-if [ "$tsh_ok" == "true" ]; then
-  command="tsh kube login "${TSH_MATCHER}""
-else
-  command="opsctl login "${INSTALLATION}" "${CLUSTER}""
-fi
+  (
+    set -ex
+    $command
+  )
+}
 
-(
-	set -ex
-	$command
-)
+main "$@"
