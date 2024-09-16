@@ -17,6 +17,10 @@ Create kubeconfig for the given cluster or installation.
   <cluster>       cluster name"
 }
 
+echo_stderr() {
+    >&2 echo "$@"
+}
+
 main() {
   if [ $# -lt 1 ] || [ "$1" == "-h" ]; then
     print_usage
@@ -50,6 +54,7 @@ main() {
 
   # Check if the kubectl context already exists
   if CONTEXTS=$(kubectl config get-contexts -oname | grep "${context_matcher}"); then
+    echo_stderr "> Checking for existing kubectl contexts"
     for c in $CONTEXTS; do
       # Test if the context is valid and switch to it if it is
       timeout 3s kubectl --context "${c}" get nodes &>/dev/null && \
@@ -62,6 +67,7 @@ main() {
   mkdir -p "${CACHE_DIR}"
   expiry="$(date -d '- 5 minutes' +%s)"
   if [ ! -f "${TSH_CACHE}" ] || [ "$(stat --printf=%Y "${TSH_CACHE}")" -le "$expiry" ]; then
+    echo_stderr "> Downloading tsh clusters"
     tsh kube ls --format json > "${TSH_CACHE}"
   fi
 
