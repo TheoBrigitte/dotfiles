@@ -22,7 +22,7 @@ fi
 # Arguments
 
 # replace / separator with space.
-args=$(echo -n "$@" | sed -e 's/[^[:alnum:]]/ /g')
+args=$(echo -n "$@" | sed -e 's/[^[:alnum:]]/ /1')
 
 # bash will split words on spaces.
 values=($args)
