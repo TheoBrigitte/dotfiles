@@ -26,15 +26,16 @@ declare -A VPN2_CONFIG=(
 # Functions
 
 print_usage() {
+  bin_name="$(basename "$0")"
   echo "Usage:
-  $(basename $0) [ status [ <name> ] ]              list connections state (default action)
-  $(basename $0) on|off [ <name> ]                  enable or disable a connection (default name=vpn)
-  $(basename $0) logs [ <name> [ options ] ]        view logs for a connection, for options see 'man journalctl' (default name=vpn)
-  $(basename $0) show-config [ <name> ]             show OpenVPN configuration for connection <name> (default name=vpn)
-  $(basename $0) update-config                      (re-)create connections with up to date OpenVPN configuration
-  $(basename $0) install [ --force ] [ --dry-run ]  configure environement to work with OpenVPN
-  $(basename $0) uninstall [ --dry-run ]            uninstall environement created with the install command
-  $(basename $0) help                               print this help
+  $bin_name [ status [ <name> ] ]              list connections state (default action)
+  $bin_name on|off [ <name> ]                  enable or disable a connection (default name=vpn)
+  $bin_name logs [ <name> [ options ] ]        view logs for a connection, for options see 'man journalctl' (default name=vpn)
+  $bin_name show-config [ <name> ]             show OpenVPN configuration for connection <name> (default name=vpn)
+  $bin_name update-config                      (re-)create connections with up to date OpenVPN configuration
+  $bin_name install [ --force ] [ --dry-run ]  configure environement to work with OpenVPN
+  $bin_name uninstall [ --dry-run ]            uninstall environement created with the install command
+  $bin_name help                               print this help
 
 Manage OpenVPN connections via NetworkManager
 
