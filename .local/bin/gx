@@ -2,6 +2,9 @@
 
 set -eu
 
+CACHE_DIR="${HOME}/.cache/gx"
+TSH_CACHE="${CACHE_DIR}/tsh_kube_ls.json"
+
 print_usage() {
   echo "Usage:
   $(basename $0) <installation> [ <separator> <cluster> ]
@@ -30,11 +33,13 @@ values=($args)
 INSTALLATION="${values[0]}"
 CLUSTER=""
 CONTEXT_MATCHER="${INSTALLATION}$"
+TSH_MATCHER="${INSTALLATION}"
 
 values_length=${#values[@]}
 if [ $values_length -ge 2 ]; then
   CLUSTER="${values[$values_length-1]}"
   CONTEXT_MATCHER="${INSTALLATION}-${CLUSTER}"
+  TSH_MATCHER="${INSTALLATION}-${CLUSTER}"
 fi
 
 if CONTEXTS=$(kubectl config get-contexts -oname | grep "${CONTEXT_MATCHER}"); then
@@ -45,7 +50,23 @@ if CONTEXTS=$(kubectl config get-contexts -oname | grep "${CONTEXT_MATCHER}"); t
     done
 fi
 
+mkdir -p "${CACHE_DIR}"
+expiry="$(date -d '- 5 minutes' +%s)"
+
+if [ ! -f "${TSH_CACHE}" ] || [ "$(stat --printf=%Y "${TSH_CACHE}")" -le "$expiry" ]; then
+  tsh kube ls --format json > "${TSH_CACHE}"
+fi
+
+tsh_ok="$(jq '.[] | select(.kube_cluster_name == "'"$TSH_MATCHER"'") | true' "${TSH_CACHE}")"
+
+command=""
+if [ "$tsh_ok" == "true" ]; then
+  command="tsh kube login "${TSH_MATCHER}""
+else
+  command="opsctl login "${INSTALLATION}" "${CLUSTER}""
+fi
+
 (
 	set -ex
-	opsctl login "${INSTALLATION}" "${CLUSTER}"
+	$command
 )
