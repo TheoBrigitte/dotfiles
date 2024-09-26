@@ -10,20 +10,21 @@ TSH_NODE_CACHE="${CACHE_DIR}/tsh_ls.json"
 # Print usage
 print_usage() {
   bin_name="$(basename $0)"
-  echo "Usage: $bin_name <installation> [ <separator> <cluster> ]
-               $bin_name login <installation> [ <separator> <cluster> ]
-               $bin_name ssh <installation or cluster> <node>
-
-Actions:
-  login           Create kubeconfig for the given cluster or installation.
-  ssh             SSH into the given node.
+  echo "Usage:
+  $bin_name [ login ] <installation> [ <separator> <cluster> ]  Create kubeconfig for the given installation or cluster
+  $bin_name ssh <installation or cluster> <node>                SSH into the given node
 
 Arguments:
-
   <installation>  installation name
-  <separator>     any non alphanumeric character
   <cluster>       cluster name
-  <node>          node name"
+  <node>          node name
+  <separator>     any non alphanumeric character
+
+Examples:
+  $bin_name my-installation
+  $bin_name my-installation my-cluster
+  $bin_name ssh my-installation my-node
+  $bin_name ssh my-cluster my-node"
 }
 
 echo_stderr() {
