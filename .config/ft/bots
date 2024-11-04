@@ -1,0 +1,11 @@
+# Freqtrade configured bots
+# Format: <bot source directory>:<host>
+# see ft help-bots
+
+crazyboy:vafa
+warboy:vafa
+loneboy:vafa
+magicboy:vafa
+joyboy:vafa
+busyboy:vafa
+kiki:vafa

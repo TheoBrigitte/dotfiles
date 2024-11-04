@@ -1,0 +1,8 @@
+# Freqtrade configured hosts
+# Format: <ssh hostname>:<path to freqtrade>
+# see ft help-hosts
+
+zul:freqtrade/freqtrade
+higgs:freqtrade
+loneboy:freqtrade
+vafa:freqtrade
