@@ -105,7 +105,7 @@ fi
 interactive=false
 nodes_max=10
 nodes_min=3
-until=$(date --utc +"%Y-%m-%d")
+until=$(date -d tomorrow --utc +"%Y-%m-%d")
 
 ARGS=$(getopt -o 'iu:' --long 'interactive,nodes-max:,nodes-min:,until:' -- "$@")
 eval set -- "$ARGS"
@@ -232,6 +232,7 @@ case "$action" in
       --provider "$provider" \
       $release_arg \
       --name "$cluster_name" \
+      --label "keep-until=$until" \
       --organization "$organization" \
       --description "$cluster_name test cluster" \
       | kubectl $action -f -
