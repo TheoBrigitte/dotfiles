@@ -1,0 +1,5 @@
+#!/bin/bash
+
+interface="$(ip -o -4 route show to default | awk '{print $5}')"
+sudo systemd-resolve --set-dns 1.1.1.1 --interface "$interface"
+resolvectl status "$interface"
