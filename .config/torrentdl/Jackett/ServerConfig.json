@@ -18,9 +18,9 @@
   "FlareSolverrMaxTimeout": 55000,
   "OmdbApiKey": "",
   "OmdbApiUrl": "",
-  "ProxyType": -1,
-  "ProxyUrl": "",
-  "ProxyPort": null,
+  "ProxyType": 2,
+  "ProxyUrl": "172.17.0.1",
+  "ProxyPort": 8000,
   "ProxyUsername": "",
   "ProxyPassword": "",
   "ProxyIsAnonymous": true
