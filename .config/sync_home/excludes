@@ -1,9 +1,15 @@
 pkg/
 Videos/
 .zoom/
-.cache/
 .slack/
 .cargo/
 .npm/
 .ethereum/
 .bitcoin/
+
+.cache/
+cache/
+Cache/
+Code Cache/
+GPUCache/
+Service Worker/
