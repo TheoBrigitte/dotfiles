@@ -10,7 +10,7 @@
   <property name="color-palette" type="string" value="#000000;#cc0000;#4e9a06;#c4a000;#3465a4;#75507b;#06989a;#d3d7cf;#555753;#ef2929;#8ae234;#fce94f;#739fcf;#ad7fa8;#34e2e2;#eeeeec"/>
   <property name="custom-command" type="string" value="/usr/bin/tmux"/>
   <property name="dropdown-always-show-tabs" type="bool" value="false"/>
-  <property name="font-name" type="string" value="NotoSansM Nerd Font Mono 10"/>
+  <property name="font-name" type="string" value="NotoMono Nerd Font 10"/>
   <property name="font-use-system" type="bool" value="true"/>
   <property name="misc-always-show-tabs" type="bool" value="false"/>
   <property name="misc-bell" type="bool" value="false"/>
@@ -55,4 +55,5 @@
   <property name="color-bold-is-bright" type="bool" value="true"/>
   <property name="color-use-theme" type="bool" value="false"/>
   <property name="font-allow-bold" type="bool" value="true"/>
+  <property name="binding-ambiguous-width" type="string" value="TERMINAL_AMBIGUOUS_WIDTH_BINDING_NARROW"/>
 </channel>

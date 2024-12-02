@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<channel name="xfce4-panel" version="1.0">
+  <property name="panels" type="array">
+    <value type="int" value="0"/>
+    <property name="panel-0" type="empty">
+      <property name="position" type="string" value="p=8;x=960;y=2264"/>
+      <property name="length" type="uint" value="100"/>
+      <property name="position-locked" type="bool" value="true"/>
+      <property name="plugin-ids" type="array">
+        <value type="int" value="8"/>
+        <value type="int" value="10"/>
+        <value type="int" value="3"/>
+        <value type="int" value="7"/>
+        <value type="int" value="6"/>
+        <value type="int" value="11"/>
+        <value type="int" value="1"/>
+        <value type="int" value="9"/>
+        <value type="int" value="13"/>
+        <value type="int" value="5"/>
+        <value type="int" value="12"/>
+        <value type="int" value="2"/>
+        <value type="int" value="4"/>
+      </property>
+      <property name="role" type="string" value="xfce4-panel-12965750720"/>
+      <property name="length-adjust" type="bool" value="false"/>
+      <property name="background-style" type="uint" value="0"/>
+      <property name="size" type="uint" value="30"/>
+      <property name="mode" type="uint" value="0"/>
+      <property name="autohide-behavior" type="uint" value="0"/>
+      <property name="icon-size" type="uint" value="0"/>
+      <property name="background-rgba" type="array">
+        <value type="double" value="0.13333300000000001"/>
+        <value type="double" value="0.13244400000000001"/>
+        <value type="double" value="0.13244400000000001"/>
+        <value type="double" value="1"/>
+      </property>
+      <property name="enter-opacity" type="uint" value="100"/>
+      <property name="leave-opacity" type="uint" value="100"/>
+      <property name="nrows" type="uint" value="1"/>
+      <property name="enable-struts" type="bool" value="true"/>
+    </property>
+    <property name="dark-mode" type="bool" value="false"/>
+  </property>
+  <property name="plugins" type="empty">
+    <property name="plugin-2" type="string" value="actions">
+      <property name="appearance" type="uint" value="0"/>
+      <property name="invert-orientation" type="bool" value="false"/>
+      <property name="items" type="array">
+        <value type="string" value="-logout-dialog"/>
+        <value type="string" value="-switch-user"/>
+        <value type="string" value="-separator"/>
+        <value type="string" value="+logout"/>
+        <value type="string" value="-lock-screen"/>
+        <value type="string" value="-hibernate"/>
+        <value type="string" value="-suspend"/>
+        <value type="string" value="-restart"/>
+        <value type="string" value="-shutdown"/>
+      </property>
+    </property>
+    <property name="plugin-6" type="string" value="systray">
+      <property name="names-visible" type="array">
+        <value type="string" value="pnmixer"/>
+        <value type="string" value="manjaro-settings-manager-daemon"/>
+        <value type="string" value="networkmanager applet"/>
+        <value type="string" value="orage"/>
+        <value type="string" value="pamac-tray"/>
+        <value type="string" value="blueman-applet"/>
+        <value type="string" value="clipman"/>
+        <value type="string" value="xfce4-power-manager"/>
+        <value type="string" value="xnoise"/>
+      </property>
+      <property name="show-frame" type="bool" value="false"/>
+      <property name="known-legacy-items" type="array">
+        <value type="string" value="wi-fi network connection “theo” active: theo (70%)"/>
+        <value type="string" value="psensor"/>
+        <value type="string" value="wi-fi network connection “sfr-6030” active: sfr-6030 (46%)"/>
+        <value type="string" value="xfce terminal"/>
+        <value type="string" value="no network connection"/>
+        <value type="string" value="networking disabled"/>
+        <value type="string" value="ethernet network connection “wired connection 1” active vpn connection active"/>
+        <value type="string" value="system-config-printer"/>
+        <value type="string" value="thunar"/>
+        <value type="string" value="ethernet network connection “wired connection 1” active"/>
+        <value type="string" value="wi-fi network connection “thema” active: thema (66%)"/>
+        <value type="string" value="wi-fi network connection “thema” active: thema (65%)"/>
+        <value type="string" value="wi-fi network connection “thema” active: thema (62%)"/>
+        <value type="string" value="wi-fi network connection “thema” active: thema (73%)"/>
+        <value type="string" value="wi-fi network connection “thema” active: thema (59%)"/>
+        <value type="string" value="redshift-gtk"/>
+        <value type="string" value="xfce4-power-manager"/>
+        <value type="string" value="pamac-tray"/>
+        <value type="string" value="networkmanager applet"/>
+        <value type="string" value="clipman"/>
+      </property>
+      <property name="known-items" type="array">
+        <value type="string" value="jyReHBe-y5"/>
+        <value type="string" value="iNBk1Z2qfk"/>
+        <value type="string" value="Np_fb_s7V8"/>
+        <value type="string" value="7TsEPHvUNT"/>
+        <value type="string" value="m_rGG4aawK"/>
+        <value type="string" value="tcahasr-pj"/>
+        <value type="string" value="6UUwLP96kl"/>
+        <value type="string" value="3s5BPYGlln"/>
+        <value type="string" value="vLIpsXmqug"/>
+        <value type="string" value="uPWdAkpKeP"/>
+        <value type="string" value="eIxVfI-j9j"/>
+        <value type="string" value="fzMnS7cuXI"/>
+        <value type="string" value="PAkAX-49jr"/>
+        <value type="string" value="meP4wTuOEN"/>
+        <value type="string" value="NItXUNP2qV"/>
+        <value type="string" value="vshwSkx1oW"/>
+        <value type="string" value="uiTp4xUJus"/>
+        <value type="string" value="w_dgjlwCih"/>
+        <value type="string" value="DzBCovsFm-"/>
+        <value type="string" value="FFYM5w34PG"/>
+        <value type="string" value="24-lIDkkGy"/>
+        <value type="string" value="wyb1xrwf7u"/>
+        <value type="string" value="3R2hw4wHY"/>
+        <value type="string" value="9vcYu5kDF"/>
+        <value type="string" value="oA5a-FwgK"/>
+        <value type="string" value="vEJft-IJt"/>
+        <value type="string" value="HfdcYOWaV"/>
+        <value type="string" value="JJBSeSaP3"/>
+        <value type="string" value="lwF_KsddR"/>
+        <value type="string" value="ZMgc6QdJz"/>
+        <value type="string" value="j97aUyU8S"/>
+        <value type="string" value="yz9cxupf1"/>
+        <value type="string" value="IQJ-ZvaQl"/>
+        <value type="string" value="g6zsd7F_E"/>
+        <value type="string" value="b9hi6cfKZ"/>
+        <value type="string" value="pDAKa7J3P"/>
+        <value type="string" value="4RsnRuh-U"/>
+        <value type="string" value="yw2F6HyHT"/>
+        <value type="string" value="e3iAV_Xfi"/>
+        <value type="string" value="XRk2jhUTx"/>
+        <value type="string" value="EjonteS1d"/>
+        <value type="string" value="WPLGjtxGO"/>
+        <value type="string" value="yblXRxJYo"/>
+        <value type="string" value="88tI1J2-4"/>
+        <value type="string" value="zprhUBV6P"/>
+        <value type="string" value="xLnfBUrXF"/>
+        <value type="string" value="8uSSX4qdu"/>
+        <value type="string" value="nh8tT7eIw"/>
+        <value type="string" value="LskVuCqz-"/>
+        <value type="string" value="jaU8SRmvx"/>
+        <value type="string" value="JrgOS76Y1"/>
+        <value type="string" value="7wR-BjhJG"/>
+        <value type="string" value="XEHbH3Tc5"/>
+        <value type="string" value="ZDqGQbfYu"/>
+        <value type="string" value="BHaSjhHJW"/>
+        <value type="string" value="9Vriugbjs"/>
+        <value type="string" value="KX38fh1c2"/>
+        <value type="string" value="Le5ZNHCO9"/>
+        <value type="string" value="iHnQHVI3w"/>
+        <value type="string" value="QMN4voWsP"/>
+        <value type="string" value="csumcq8nq"/>
+        <value type="string" value="5Ph99SoPr"/>
+        <value type="string" value="saNde8SY-"/>
+        <value type="string" value="GSdD2I2aL"/>
+        <value type="string" value="M-OIEHXcy"/>
+        <value type="string" value="FDCmWibPh"/>
+        <value type="string" value="SoulseekQt"/>
+        <value type="string" value="Insync"/>
+        <value type="string" value="Microsoft Teams - Preview1"/>
+        <value type="string" value="chrome_status_icon_1"/>
+        <value type="string" value="Bitcoin-Qt"/>
+        <value type="string" value="zoom"/>
+        <value type="string" value="clight-gui"/>
+        <value type="string" value="hp-systray"/>
+        <value type="string" value="TelegramDesktop"/>
+        <value type="string" value="vlc"/>
+        <value type="string" value="Slack1"/>
+        <value type="string" value="redshift"/>
+        <value type="string" value="Keybase1"/>
+        <value type="string" value="MSM Notifier"/>
+        <value type="string" value="blueman"/>
+      </property>
+      <property name="icon-size" type="int" value="25"/>
+      <property name="single-row" type="bool" value="true"/>
+      <property name="hide-new-items" type="bool" value="false"/>
+      <property name="square-icons" type="bool" value="true"/>
+      <property name="menu-is-primary" type="bool" value="true"/>
+      <property name="symbolic-icons" type="bool" value="false"/>
+      <property name="hidden-items" type="array">
+      </property>
+    </property>
+    <property name="plugin-3" type="string" value="tasklist">
+      <property name="grouping" type="uint" value="1"/>
+      <property name="show-labels" type="bool" value="true"/>
+      <property name="show-handle" type="bool" value="false"/>
+    </property>
+    <property name="plugin-7" type="string" value="separator">
+      <property name="expand" type="bool" value="true"/>
+      <property name="style" type="uint" value="0"/>
+    </property>
+    <property name="plugin-9" type="string" value="pulseaudio">
+      <property name="enable-keyboard-shortcuts" type="bool" value="true"/>
+      <property name="mpris-players" type="string" value="chromium.instance12515;firefox.instance1060024;firefox.instance1109402;firefox.instance113930;firefox.instance1692;firefox.instance1744;firefox.instance1807;firefox.instance1851;firefox.instance1863;firefox.instance1873;firefox.instance1877;firefox.instance1902;firefox.instance1919;firefox.instance1945;firefox.instance1962;firefox.instance2005;firefox.instance2018;firefox.instance2026;firefox.instance2034;firefox.instance2052;firefox.instance2078;firefox.instance2083;firefox.instance2148;firefox.instance2163;firefox.instance2183;firefox.instance2238;firefox.instance2254504;firefox.instance2452;firefox.instance2568;firefox.instance2577;firefox.instance2582954;firefox.instance2590193;firefox.instance2591;firefox.instance2591378;firefox.instance2650;firefox.instance2728;firefox.instance27681;firefox.instance2904;firefox.instance2928;firefox.instance2966;firefox.instance3053298;firefox.instance3131;firefox.instance32333;firefox.instance323541;firefox.instance3394;firefox.instance3631707;firefox.instance3917;firefox.instance4078071;firefox.instance4434;firefox.instance4947;firefox.instance5492;firefox.instance5535;firefox.instance55830;firefox.instance6060;firefox.instance651723;firefox.instance70483;firefox.instance780603;firefox.instance7829;firefox.instance8336;firefox.instance8997;firefox.instance961604;spotify;vlc"/>
+      <property name="known-players" type="string" value="audacious;Chrome;firefox;Firefox Web Browser;spotify;Spotify;vlc;VLC media player"/>
+    </property>
+    <property name="plugin-8" type="string" value="whiskermenu">
+      <property name="favorites-in-recent" type="bool" value="true"/>
+      <property name="command-switchuser" type="string" value="dm-tool switch-to-greeter"/>
+      <property name="favorites" type="array">
+        <value type="string" value="xfce4-terminal-emulator.desktop"/>
+        <value type="string" value="org.gnome.Calculator.desktop"/>
+        <value type="string" value="google-chrome.desktop"/>
+        <value type="string" value="firefox.desktop"/>
+        <value type="string" value="xfce4-file-manager.desktop"/>
+        <value type="string" value="slack.desktop"/>
+      </property>
+      <property name="recent" type="array">
+        <value type="string" value="xfce-settings-manager.desktop"/>
+        <value type="string" value="xfce4-clipman.desktop"/>
+        <value type="string" value="xfce-session-settings.desktop"/>
+        <value type="string" value="xfce4-terminal-settings.desktop"/>
+        <value type="string" value="xfce-keyboard-settings.desktop"/>
+        <value type="string" value="xfce4-terminal-emulator.desktop"/>
+        <value type="string" value="xfce-wm-settings.desktop"/>
+        <value type="string" value="xfce-wmtweaks-settings.desktop"/>
+        <value type="string" value="xfce4-settings-editor.desktop"/>
+        <value type="string" value="xfce4-accessibility-settings.desktop"/>
+      </property>
+    </property>
+    <property name="plugin-5" type="string" value="clock">
+      <property name="mode" type="uint" value="2"/>
+      <property name="digital-layout" type="uint" value="3"/>
+      <property name="digital-date-format" type="string" value="%a %d %b"/>
+      <property name="digital-time-format" type="string" value="%a %d %b, %R:%S"/>
+      <property name="digital-date-font" type="string" value="Sans 9"/>
+      <property name="digital-time-font" type="string" value="Sans 9"/>
+    </property>
+    <property name="plugin-10" type="string" value="separator">
+      <property name="style" type="uint" value="0"/>
+      <property name="expand" type="bool" value="false"/>
+    </property>
+    <property name="plugin-12" type="string" value="separator">
+      <property name="style" type="uint" value="0"/>
+      <property name="expand" type="bool" value="false"/>
+    </property>
+    <property name="plugin-11" type="string" value="launcher">
+      <property name="show-label" type="bool" value="false"/>
+      <property name="disable-tooltips" type="bool" value="false"/>
+      <property name="items" type="array">
+        <value type="string" value="17118250965.desktop"/>
+      </property>
+    </property>
+    <property name="clipman" type="empty">
+      <property name="tweaks" type="empty">
+        <property name="never-confirm-history-clear" type="bool" value="false"/>
+      </property>
+    </property>
+    <property name="plugin-4" type="string" value="showdesktop"/>
+    <property name="plugin-13" type="string" value="separator">
+      <property name="style" type="uint" value="0"/>
+    </property>
+    <property name="plugin-1" type="string" value="power-manager-plugin"/>
+  </property>
+  <property name="configver" type="int" value="2"/>
+</channel>
