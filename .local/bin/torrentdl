@@ -15,27 +15,21 @@ Search for torrents in configured torrent tracker(s) and download selected resul
   -h | help             print this help
 
   action:
-    query               query torrent tracker(s) for torrent search results
+    search <query>      search torrent tracker(s) for torrents
     start               start Jackett
     stop                stop Jackett
     status              show Jackett status
     create-config       create a sample config.env file
 
-  argument:
+  args
     <query>             search query sent to torrent tracker(s)"
 }
 
-run_query() {
+run_search() {
   QUERY="${1-}"
   if [ -z "$QUERY" ]; then
-    usage
-    exit 1
+    read -p "> search: " QUERY
   fi
-  shift
-
-  echo "/!\ This might fail due to fail2ban ban as transmission-remote send many unauthenticated requests"
-  echo "    Also don't forget to start jacket with: docker-compose up --wait"
-  echo
 
   source "$CONFIG_DIR/config.env"
 
@@ -46,7 +40,8 @@ run_query() {
 
   echo "> Fetching results for \"$QUERY\""
   # Query Jackett for torrent search results from torrent tracker
-  curl "http://127.0.0.1:9117/api/v2.0/indexers/all/results?apikey=$JACKETT_API_KEY&Query=$QUERY" \
+  url_query="$(echo "$QUERY" | jq -sRj @uri)"
+  curl "$JACKETT_API_URL/api/v2.0/indexers/yggcookie/results?apikey=$JACKETT_API_KEY&Query=$url_query" \
     --connect-timeout 5 \
     --max-time 20 | \
   #cat results.json |\
@@ -82,11 +77,13 @@ run_query() {
 
 run_start() {
   cd "$CONFIG_DIR"
-  docker-compose up --wait
+	ssh -o ExitOnForwardFailure=yes -S ./ssh_ctl -M -4 -f -N -D *:8000 higgs
+  docker-compose up --pull=always --wait
 }
 
 run_stop() {
   cd "$CONFIG_DIR"
+	test -e ./ssh_ctl && ssh -S ./ssh_ctl -O exit higgs
   docker-compose down
 }
 
@@ -132,8 +129,8 @@ main() {
   mkdir -p "$CONFIG_DIR"
 
   case "$ACTION" in
-    query)
-      run_query "$@"
+    search)
+      run_search "$@"
       ;;
     start)
       run_start "$@"
