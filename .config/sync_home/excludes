@@ -1,15 +1,53 @@
-pkg/
-Videos/
-.zoom/
-.slack/
-.cargo/
-.npm/
-.ethereum/
-.bitcoin/
+# Exclude files and directories from being backed up
+# Highest priority is at the top of the file
 
-.cache/
-cache/
-Cache/
-Code Cache/
-GPUCache/
-Service Worker/
+# Cache
+.cache
+__pycache__
+*cache
+CacheStorage
+*Cache
+*Caches
+*/Code Cache
+*/GPUCache
+*/Service Worker
+
+# Media and trash
+Videos
+.local/share/Trash/files
+.local/lib
+
+# Applications
+.bitcoin
+.ethereum
+.config/molotov
+.slack
+.zoom
+.config/google-chrome
+.config/chromium
+
+# Web browsers
+.config/chromium/*/Extensions
+.config/google-chrome/*/Extensions
+.mozilla/firefox/*/datareporting
+
+# Giantswarm
+.config/opsctl/pkg
+.config/opsctl/github.com
+
+# Dev tools
+.cargo
+.docker/buildx
+.npm
+node_modules
+site-packages
+vendor
+
+# Projects (backup everything)
++ /projects/**
+
+# Golang (only backup sources)
+/pkg
+/sdk
+/src/**/vendor
++ /src/**

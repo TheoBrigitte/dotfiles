@@ -76,24 +76,22 @@ main() {
     fi
     target="${target%/}/"
 
-    log_enabled=false
     log_file="$LOG_DIR/$(date +%Y%m%d_%H%M%S).log"
-    log_arg=""
-    if [[ ! "$additional_args" =~ --dry-run|-n ]]; then
-        log_enabled=true
-        log_arg="--log-file=$log_file"
+    if [[ "$additional_args" =~ --dry-run|-n ]]; then
+        log_file="$log_file.dry-run"
     fi
+    log_arg="--log-file=$log_file"
 
     echo "> source:        $SOURCE_DIR"
     echo "> target:        $target"
-    if $log_enabled; then
-      echo "> logging to:    $log_file"
-    fi
+    echo "> logging to:    $log_file"
     echo "> rsync options: $additional_args"
 
     mkdir -p "$CONFIG_DIR" "$LOG_DIR"
 
     rsync -avP \
+      --delete \
+      --delete-excluded \
       --stats \
       --human-readable \
       --exclude-from ~/.config/sync_home/excludes \
@@ -101,9 +99,7 @@ main() {
       $additional_args \
       "$SOURCE_DIR" "$target"
 
-    if $log_enabled; then
-      echo "> logged to: $log_file"
-    fi
+    echo "> logged to: $log_file"
     echo "> done"
 }
 
