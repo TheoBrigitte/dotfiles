@@ -57,6 +57,9 @@ alias kf='kubectl -n=flux-giantswarm'
 alias glc='kubectl gs get clusters -A'
 alias gi='cd $GOPATH/src/github.com/giantswarm'
 alias oli='opsctl list installations'
+alias pmo='cd -P prometheus-meta-operator'
+alias vpa='cd -P vertical-pod-autoscaler-app'
+alias olly='cd observability-operator'
 
 # text
 alias standup="vim +'normal G' +'r!date' +'normal o' +startinsert ~/standup.txt"
@@ -69,8 +72,6 @@ alias gok="go build && go test ./... && echo OK"
 alias tm="tmux new -s default"
 alias watch="watch "
 alias clip="xclip -sel clip -i"
-alias pmo='cd -P prometheus-meta-operator'
-alias vpa='cd -P vertical-pod-autoscaler-app'
 alias theo='cd $GOPATH/src/github.com/TheoBrigitte'
 alias vi='nvim'
 alias vim='nvim'
