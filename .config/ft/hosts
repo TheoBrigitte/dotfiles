@@ -2,7 +2,8 @@
 # Format: <ssh hostname>:<path to freqtrade>
 # see ft help-hosts
 
-zul:freqtrade
 #higgs:freqtrade
 #loneboy:freqtrade
 vafa:freqtrade
+zog:freqtrade
+zul:freqtrade

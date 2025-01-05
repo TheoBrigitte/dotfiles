@@ -2,11 +2,15 @@
 # Format: <bot source directory>:<host>
 # see ft help-bots
 
-crazyboy:vafa
 warboy:vafa
 loneboy:vafa
-magicboy:vafa
 joyboy:vafa
 busyboy:vafa
-kiki:zul
-pout:zul
+
+crazyboy:zog
+magicboy:zog
+kiki:zog
+pout:zog
+
+littleboy:zul
+bigboy:zul
