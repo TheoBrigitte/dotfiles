@@ -1,5 +1,5 @@
 #!/bin/bash
 
 interface="$(ip -o -4 route show to default | tail -n 1 | awk '{print $5}')"
-sudo systemd-resolve --set-dns 1.1.1.1 --set-dns 1.0.0.1 --interface "$interface"
+nmcli device connect "$interface"
 resolvectl status "$interface"
