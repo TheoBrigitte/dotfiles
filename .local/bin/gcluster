@@ -28,7 +28,7 @@ get_installation() {
 get_release_vintage() {
 	interactive=${1:-false}
 
-	releases=$(kubectl get release --sort-by .spec.date -ojson)
+	releases=$(kubectl get release -ojson)
 	len=$(echo "$releases" | jq -r '.items | length')
 	release_candidates=()
 	for (( i=$len-1; i>=0; i-- )); do
@@ -57,7 +57,7 @@ get_release_vintage() {
 get_release_capi() {
 	interactive=${1:-false}
 
-	releases=$(kubectl get release --sort-by .spec.date -ojson)
+	releases=$(kubectl get release -ojson)
 	len=$(echo "$releases" | jq -r '.items | length')
 	release_candidates=()
 	for (( i=$len-1; i>=0; i-- )); do
