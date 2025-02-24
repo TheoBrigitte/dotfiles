@@ -60,7 +60,7 @@ create_kubeconfig() {
     echo_stderr "► Checking for existing kubectl contexts"
     for c in $CONTEXTS; do
       # Test if the context is valid and switch to it if it is
-      timeout 3s kubectl --context "${c}" get nodes &>/dev/null && \
+      timeout 5s kubectl --context "${c}" get nodes &>/dev/null && \
         kubectx "${c}" && \
         exit 0
       done
