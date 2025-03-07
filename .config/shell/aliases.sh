@@ -40,7 +40,7 @@ alias gpn='git push -u origin HEAD'
 alias gpr='git push --rebase'
 alias grc='git rebase --continue'
 alias gul='git pull'
-alias gfv='git fetch -vp'
+alias gf='git fetch -vp'
 alias gcountcommits="git shortlog -sn"
 #alias gcountlines='git ls-files -z | xargs -0n1 git blame -w | perl -n -e \'/^.*\((.*?)\s*[\d]{4}/; print $1,"\n"\' | sort -f | uniq -c | sort -n'
 alias gl='git log'
@@ -59,7 +59,7 @@ alias gi='cd $GOPATH/src/github.com/giantswarm'
 alias oli='opsctl list installations'
 alias pmo='cd -P prometheus-meta-operator'
 alias vpa='cd -P vertical-pod-autoscaler-app'
-alias olly='cd observability-operator'
+alias op='cd observability-operator'
 
 # text
 alias standup="vim +'normal G' +'r!date' +'normal o' +startinsert ~/standup.txt"
