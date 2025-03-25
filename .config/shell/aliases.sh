@@ -59,7 +59,8 @@ alias gi='cd $GOPATH/src/github.com/giantswarm'
 alias oli='opsctl list installations'
 alias pmo='cd -P prometheus-meta-operator'
 alias vpa='cd -P vertical-pod-autoscaler-app'
-alias op='cd observability-operator'
+alias obop='cd observability-operator'
+alias mcb="cd management-cluster-bases"
 
 # text
 alias standup="vim +'normal G' +'r!date' +'normal o' +startinsert ~/standup.txt"
