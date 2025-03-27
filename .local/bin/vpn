@@ -20,6 +20,9 @@ declare -A CONNECTION_NAMES=(
 	[vpn2]="vpn2.giantswarm;${USERNAME}@vpn2.giantswarm.io:${USERNAME}.ovpn;2222"
 )
 
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
 # resolv.conf management
 # This file is used to configure systemd-resolved as a local DNS resolver.
 resolv_conf=/etc/resolv.conf
@@ -150,20 +153,20 @@ setup_nm_dispatcher_ok() {
 	[ -x "$nm_dispatcher_file" ] && \
 		diff -q <(echo -n "${nm_dispatcher_script}") "$nm_dispatcher_file" &>/dev/null && \
 		[ $(stat --printf "%u" "$nm_dispatcher_file") -eq 0 ]
-	}
+}
 
-	setup_check() {
+setup_check() {
 	if ! setup_resolv_conf_ok; then
-		echo "> setup broken: $resolv_conf is not managed by systemd-resolved"
+		echo -e "> ${RED}setup broken: $resolv_conf is not managed by systemd-resolved${NC}"
 	fi
 	if ! setup_systemd_resolved_ok; then
-		echo "> setup broken: $systemd_resolved_service is not running"
+		echo -e "> ${RED}setup broken: $systemd_resolved_service is not running${NC}"
 	fi
 	if ! setup_systemd_resolved_script_ok; then
-		echo "> setup broken: $systemd_resolved_script_command not found"
+		echo -e "> ${RED}setup broken: $systemd_resolved_script_command not found${NC}"
 	fi
 	if ! setup_nm_dispatcher_ok; then
-		echo "> setup broken: $nm_dispatcher_file is broken"
+		echo -e "> ${RED}setup broken: $nm_dispatcher_file is broken${NC}"
 	fi
 }
 
@@ -202,10 +205,7 @@ fi
 
 # on start an OpenVPN connection
 if [ "${ACTION}" == "on" ]; then
-	if ! setup_check; then
-		exit 1
-	fi
-	echo "> setup ok"
+	setup_check
 
 	connection_name="${1:-}"
 	if [ $# -gt 0 ]; then shift; fi
@@ -226,7 +226,7 @@ if [ "${ACTION}" == "on" ]; then
 		echo
 	fi
 
-	echo "> failed"
+	echo -e "> ${RED}failed${NC}"
 	exit 1
 fi
 
@@ -251,7 +251,7 @@ if [ "${ACTION}" == "off" ]; then
 		echo
 	fi
 
-	echo "> failed"
+	echo -e "> ${RED}failed${NC}"
 	exit 1
 fi
 
@@ -274,7 +274,7 @@ if [ "${ACTION}" == "logs" ]; then
 
 		exit 0
 	else
-		echo "> connection not found: ${connection}"
+		echo -e "> ${RED}connection not found: ${connection}${NC}"
 		exit 1
 	fi
 fi
