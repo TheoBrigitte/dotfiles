@@ -10,6 +10,10 @@ dotfiles repo managed with [yadm][1].
 
 `$HOME/.yadm/bootstrap`
 
+## Sleep
+
+For suspend and hibernation setup using systemd see `docs/sleep/install.sh`.
+
 ## Requirements
 
 [yadm][1]
