@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -u
+set -eu
 
 # Check current battery charge threshold with the following command:
 # sudo tlp-stat --battery
