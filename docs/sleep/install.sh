@@ -2,7 +2,8 @@
 #
 # This script does the install procedure to handle suspend and hibernate on a laptop using systemd.
 # It sets up the systemd sleep configuration and logind configuration files.
-# It also disable xfce4-power-manager to prevent it from handling suspend, hibernate, and lid close events.
+# It also disable xfce4-power-manager from handling suspend, hibernate, and lid close events.
+# It enables light-locker to handle screen locking and suspend/hibernate events.
 
 set -eu
 
@@ -13,7 +14,6 @@ SLEEP_CONFIG_FILE="sleep.conf.d/00-theo.conf"
 LOGIND_CONFIG_FILE="logind.conf.d/00-theo.conf"
 
 AUTOSTART_DIR="$HOME/.config/autostart"
-XFCE4_POWER_MANAGER="xfce4-power-manager.desktop"
 LIGHT_LOCKER="light-locker.desktop"
 
 generate_autostart() {
@@ -31,6 +31,7 @@ install() {
   trap 'rm -rf "$tmpdir"' EXIT
 
   # Install systemd sleep configuration
+  # man 5 systemd-sleep.conf
   echo "> Checking $(basename "$SLEEP_CONFIG_FILE")"
   if ! diff -q "$SCRIPT_DIR/$SLEEP_CONFIG_FILE" "$SYSTEMD_DIR/$SLEEP_CONFIG_FILE" &>/dev/null; then
     echo -n "  "
@@ -43,6 +44,7 @@ install() {
   fi
 
   # Install systemd logind configuration
+  # man 5 logind.conf
   echo "> Checking $(basename "$LOGIND_CONFIG_FILE")"
   if ! diff -q "$SCRIPT_DIR/$LOGIND_CONFIG_FILE" "$SYSTEMD_DIR/$LOGIND_CONFIG_FILE" &>/dev/null; then
     echo -n "  "
@@ -58,6 +60,7 @@ install() {
 
   # Disable xfce4-power-manager power management handling
   # NOTE: keep it running for brightness control
+  # https://docs.xfce.org/xfce/xfce4-power-manager/4.20/faq
   echo "> Checking xfce4-power-manager"
   xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/logind-handle-lid-switch -n -t bool -s true
   xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/logind-handle-power-key -n -t bool -s true
@@ -66,6 +69,7 @@ install() {
   echo "  configured"
 
   # Enable light-locker autostart
+  # https://wiki.archlinux.org/title/LightDM
   echo "> Checking $LIGHT_LOCKER"
   generate_autostart "false" > "$tmpdir/$LIGHT_LOCKER"
   if ! diff -q "$tmpdir/$LIGHT_LOCKER" "$AUTOSTART_DIR/$LIGHT_LOCKER" &>/dev/null; then
