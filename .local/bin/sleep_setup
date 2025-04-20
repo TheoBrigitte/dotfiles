@@ -7,14 +7,23 @@
 
 set -eu
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE}")" && pwd -P)"
-
-SYSTEMD_DIR="/etc/systemd"
+CONFIG_DIR="$HOME/.config/sleep_setup"
 SLEEP_CONFIG_FILE="sleep.conf.d/00-theo.conf"
 LOGIND_CONFIG_FILE="logind.conf.d/00-theo.conf"
 
+SYSTEMD_DIR="/etc/systemd"
 AUTOSTART_DIR="$HOME/.config/autostart"
 LIGHT_LOCKER="light-locker.desktop"
+
+DRY_RUN=false
+
+usage() {
+  cat <<-EOF
+	Usage: $(basename "$0") [options]
+	      --dry-run: do not install, just show what would be done
+	  -h, --help: show this help message
+	EOF
+}
 
 generate_autostart() {
   hidden="$1"
@@ -26,6 +35,15 @@ generate_autostart() {
 	EOF
 }
 
+function _run () {
+  if $DRY_RUN; then
+    echo "  [dry-run]" "$@" >&2
+  else
+    echo -n "  "
+    "$@"
+  fi
+}
+
 install() {
   tmpdir="$(mktemp -dt sleep-install-XXXXXXXXXX)"
   trap 'rm -rf "$tmpdir"' EXIT
@@ -33,11 +51,10 @@ install() {
   # Install systemd sleep configuration
   # man 5 systemd-sleep.conf
   echo "> Checking $(basename "$SLEEP_CONFIG_FILE")"
-  if ! diff -q "$SCRIPT_DIR/$SLEEP_CONFIG_FILE" "$SYSTEMD_DIR/$SLEEP_CONFIG_FILE" &>/dev/null; then
-    echo -n "  "
-    sudo cp -v "$SCRIPT_DIR/$SLEEP_CONFIG_FILE" "$SYSTEMD_DIR/$SLEEP_CONFIG_FILE"
+  if ! diff -q "$CONFIG_DIR/$SLEEP_CONFIG_FILE" "$SYSTEMD_DIR/$SLEEP_CONFIG_FILE" &>/dev/null; then
+    _run sudo cp -v "$CONFIG_DIR/$SLEEP_CONFIG_FILE" "$SYSTEMD_DIR/$SLEEP_CONFIG_FILE"
     echo "  reloading systemd"
-    sudo systemctl daemon-reload
+    _run sudo systemctl daemon-reload
     echo "  done"
   else
     echo "  already installed"
@@ -46,13 +63,12 @@ install() {
   # Install systemd logind configuration
   # man 5 logind.conf
   echo "> Checking $(basename "$LOGIND_CONFIG_FILE")"
-  if ! diff -q "$SCRIPT_DIR/$LOGIND_CONFIG_FILE" "$SYSTEMD_DIR/$LOGIND_CONFIG_FILE" &>/dev/null; then
-    echo -n "  "
-    sudo cp -v "$SCRIPT_DIR/$LOGIND_CONFIG_FILE" "$SYSTEMD_DIR/$LOGIND_CONFIG_FILE"
+  if ! diff -q "$CONFIG_DIR/$LOGIND_CONFIG_FILE" "$SYSTEMD_DIR/$LOGIND_CONFIG_FILE" &>/dev/null; then
+    _run sudo cp -v "$CONFIG_DIR/$LOGIND_CONFIG_FILE" "$SYSTEMD_DIR/$LOGIND_CONFIG_FILE"
     echo "  reloading systemd"
-    sudo systemctl daemon-reload
+    _run sudo systemctl daemon-reload
     echo "  restarting systemd-logind"
-    sudo systemctl restart systemd-logind
+    _run sudo systemctl restart systemd-logind
     echo "  done"
   else
     echo "  already installed"
@@ -62,10 +78,10 @@ install() {
   # NOTE: keep it running for brightness control
   # https://docs.xfce.org/xfce/xfce4-power-manager/4.20/faq
   echo "> Checking xfce4-power-manager"
-  xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/logind-handle-lid-switch -n -t bool -s true
-  xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/logind-handle-power-key -n -t bool -s true
-  xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/logind-handle-suspend-key -n -t bool -s true
-  xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/logind-handle-hibernate-key -n -t bool -s true
+  _run xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/logind-handle-lid-switch -n -t bool -s true
+  _run xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/logind-handle-power-key -n -t bool -s true
+  _run xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/logind-handle-suspend-key -n -t bool -s true
+  _run xfconf-query -c xfce4-power-manager -p /xfce4-power-manager/logind-handle-hibernate-key -n -t bool -s true
   echo "  configured"
 
   # Enable light-locker autostart
@@ -73,14 +89,14 @@ install() {
   echo "> Checking $LIGHT_LOCKER"
   generate_autostart "false" > "$tmpdir/$LIGHT_LOCKER"
   if ! diff -q "$tmpdir/$LIGHT_LOCKER" "$AUTOSTART_DIR/$LIGHT_LOCKER" &>/dev/null; then
-    cat "$tmpdir/$LIGHT_LOCKER" > "$AUTOSTART_DIR/$LIGHT_LOCKER"
+    ! $DRY_RUN && cat "$tmpdir/$LIGHT_LOCKER" > "$AUTOSTART_DIR/$LIGHT_LOCKER"
     echo "  updated"
   else
     echo "  already installed"
   fi
 
   if ! ps -C light-locker &>/dev/null; then
-    light-locker &
+    ! $DRY_RUN && light-locker &
     echo "  started"
   else
     echo "  already running"
@@ -88,6 +104,24 @@ install() {
 }
 
 main() {
+  while [ $# -gt 0 ]; do
+    case $1 in
+      --dry-run)
+        DRY_RUN=true
+        ;;
+      -h|--help)
+        usage
+        exit 0
+        ;;
+    esac
+    shift
+  done
+
+  if [ ! -d "$CONFIG_DIR" ]; then
+    echo "Error: $CONFIG_DIR does not exist" >&2
+    exit 1
+  fi
+
   install
 }
 
