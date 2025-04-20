@@ -10,9 +10,17 @@ dotfiles repo managed with [yadm][1].
 
 `$HOME/.yadm/bootstrap`
 
-## Sleep
+## Scripts
 
-For suspend and hibernation setup using systemd see `docs/sleep/install.sh`.
+My scripts collection is located in `.local/bin`.
+
+Here are some useful ones:
+
+- `fetch-tools`: dowload and install tools binaries
+- `fuck-dns`: override ISP DNS, because DNS is always the problem
+- `passwd-gen`: generate a random password
+- `replace`: replace a string in files
+- `sleep_setup`: setup systemd sleep with suspend and hibernation, and disable xfce4
 
 ## Requirements
 
