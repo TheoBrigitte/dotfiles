@@ -4,8 +4,7 @@ set -eu
 
 # Cache directory and file
 CACHE_DIR="${HOME}/.cache/gx"
-TSH_CLUSTER_CACHE="${CACHE_DIR}/tsh_kube_ls.json"
-TSH_NODE_CACHE="${CACHE_DIR}/tsh_ls.json"
+CACHE_EXPIRY="5 minutes"
 
 # Print usage
 print_usage() {
@@ -29,6 +28,28 @@ Examples:
 
 echo_stderr() {
     >&2 echo "$@"
+}
+
+join_by() {
+  local IFS="$1"
+  shift
+  echo "$*"
+}
+
+# Download and cache tsh data
+tsh_cache() {
+  tsh_cmd="$@"
+  cache_name="$(join_by "_" $tsh_cmd)"
+  cache_file="$CACHE_DIR/tsh_${cache_name}.json"
+
+  mkdir -p "${CACHE_DIR}"
+  expiry="$(date -d "- $CACHE_EXPIRY" +%s)"
+  if [ ! -f "$cache_file" ] || [ "$(stat --printf=%Y "$cache_file")" -le "$expiry" ]; then
+    echo_stderr "> Downloading tsh $tsh_cmd"
+    tsh $tsh_cmd --format json > "$cache_file"
+  fi
+
+  cat "$cache_file"
 }
 
 create_kubeconfig() {
@@ -66,16 +87,8 @@ create_kubeconfig() {
       done
   fi
 
-  # Download and cache tsh clusters
-  mkdir -p "${CACHE_DIR}"
-  expiry="$(date -d '- 5 minutes' +%s)"
-  if [ ! -f "${TSH_CLUSTER_CACHE}" ] || [ "$(stat --printf=%Y "${TSH_CLUSTER_CACHE}")" -le "$expiry" ]; then
-    echo_stderr "► Downloading tsh clusters"
-    tsh kube ls --format json > "${TSH_CLUSTER_CACHE}"
-  fi
-
   # Check if the cluster exists in tsh
-  tsh_ok="$(jq '.[] | select(.kube_cluster_name == "'"$tsh_matcher"'") | true' "${TSH_CLUSTER_CACHE}")"
+  tsh_ok="$(tsh_cache kube ls | jq '.[] | select(.kube_cluster_name == "'"$tsh_matcher"'") | true')"
 
   # use tsh or opsctl to login
   command=""
@@ -91,6 +104,26 @@ create_kubeconfig() {
   )
 }
 
+open_app() {
+  installation="$1"
+  app_name="$2"
+
+  tsh_app_name="$(tsh_cache apps ls | jq -r '.[] | select(.metadata.labels["cluster"] == "'"$installation"'") | select(.metadata.labels["app"] == "'"$app_name"'") | .metadata.name')"
+  if [ -n "$tsh_app_name" ]; then
+    command="tsh app login ${tsh_app_name}"
+  else
+    command="opsctl open --app ${app_name} --installation ${installation}"
+  fi
+
+  (
+    set -ex
+    $command | tail -n 1 | xargs
+  )
+
+  #url=$(opsctl open --app "$2" --installation "$1" --no-browser)
+  #echo "$url"
+}
+
 ssh_node() {
   # replace separator with space
   args=$(echo -n "$@" | sed -e 's/[^[:alnum:]]/ /1')
@@ -102,17 +135,10 @@ ssh_node() {
   cluster_name="${values[0]}"
   node_name="${values[1]}"
 
-  # Download and cache tsh nodes
-  mkdir -p "${CACHE_DIR}"
-  expiry="$(date -d '- 5 minutes' +%s)"
-  if [ ! -f "${TSH_NODE_CACHE}" ] || [ "$(stat --printf=%Y "${TSH_NODE_CACHE}")" -le "$expiry" ]; then
-    echo_stderr "> Downloading tsh machines"
-    tsh ls --format json > "${TSH_NODE_CACHE}"
-  fi
 
   # Check if the node exists in tsh
   node_matcher="$(echo "${node_name}" | cut -d'.' -f1)"
-  tsh_ok="$(jq '.[] | select(.spec.hostname == "'"$node_matcher"'") | select(.metadata.labels["cluster"] == "'"$cluster_name"'") | true' "${TSH_NODE_CACHE}")"
+  tsh_ok="$(tsh_cache ls | jq '.[] | select(.spec.hostname == "'"$node_matcher"'") | select(.metadata.labels["cluster"] == "'"$cluster_name"'") | true')"
 
   # use tsh or opsctl to ssh
   command=""
@@ -136,14 +162,18 @@ main() {
   fi
 
   case "$1" in
-    login)
+    open)
       shift
-      create_kubeconfig "$@"
+      open_app "$@"
       ;;
     ssh)
       shift
       ssh_node "$@"
       ;;
+    login)
+      shift
+      # fallthrough
+      ;&
     *)
       create_kubeconfig "$@"
       ;;
