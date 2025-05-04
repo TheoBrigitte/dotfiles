@@ -1,5 +1,11 @@
 #!/bin/bash
 
+set -eu
+
+# from https://one.one.one.one/dns/
+dns_ips="1.1.1.1 1.0.0.1 2606:4700:4700::1111 2606:4700:4700::1001"
+
 interface="$(ip -o -4 route show to default | tail -n 1 | awk '{print $5}')"
-sudo systemd-resolve --set-dns 1.1.1.1 --set-dns 1.0.0.1 --interface "$interface"
+sudo resolvectl dns "$interface" $dns_ips
+
 resolvectl status "$interface"

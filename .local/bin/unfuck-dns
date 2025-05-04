@@ -1,5 +1,12 @@
 #!/bin/bash
 
+set -eu
+
 interface="$(ip -o -4 route show to default | tail -n 1 | awk '{print $5}')"
-nmcli device connect "$interface"
+sudo resolvectl revert "$interface"
+
+dns_ips="$(nmcli --escape no --get-values IP4.DNS,IP6.DNS d show "$interface" | tr '\n' ' ')"
+test -n "$dns_ips" && \
+  sudo resolvectl dns "$interface" $dns_ips
+
 resolvectl status "$interface"
