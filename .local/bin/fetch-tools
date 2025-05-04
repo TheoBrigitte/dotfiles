@@ -6,7 +6,7 @@ usage() {
   cat <<-EOF
 	Usage: $(basename "$0") [options] [command]
 
-	This script downloads and installs tools into the destination directory.
+	This script downloads and installs single binary tools into the destination directory.
 
 	Commands:
 	  install    Install the specified tools (default).
@@ -22,7 +22,7 @@ usage() {
 EOF
 }
 
-# Initialize the configuration file with default values if it doesn't exist.
+# Initialize the configuration file with default values if it doesn't exist
 init_config() {
   local config_file="$1"
 
@@ -43,15 +43,15 @@ init_config() {
 	#                          when using latest, prefix_repository must be set.
 	# prefix_repository:       git repository to fetch the latest version from (optional)
 	# prefix_version_pattern:  regex pattern to match the version tags found in prefix_repository (optional, default: $DEFAULT_VERSION_PATTERN)
-  # prefix_url:              URL to download the tool from (optional)
+	# prefix_origin:           origin where to get the tool from (required)
 	#                          Placeholders {VERSION} and {VERSION_NOV} will be replaced with the version and version without the v prefix, respectively.
-	# prefix_path:             path to the file inside the archive (default to prefix)
+	# prefix_path:             path to the binary inside the archive (default to prefix)
 	# prefix_strip_components: number of components to strip from the archive (only for tar archives) (default: 1)
 	#
 	# EXAMPLE
 	# destination_dir=~/bin
 	# yq_version=latest
-	# yq_url=https://github.com/mikefarah/yq/releases/download/{VERSION}/yq_linux_amd64
+	# yq_origin=https://github.com/mikefarah/yq/releases/download/{VERSION}/yq_linux_amd64
 	# yq_repository=https://github.com/mikefarah/yq
 	EOF
 }
@@ -65,7 +65,7 @@ DEFAULT_BIN_FORMAT="{BIN}-{VERSION}"
 
 # Global variables
 DEBUG=false
-KEY_MAX_LENGTH=0
+KEY_MAX_LENGTH=4
 
 # Logging colors
 RED='\033[0;31m'
@@ -76,7 +76,7 @@ PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
 NO_COLOR='\033[0m'
 
-# Log tool message
+# Print tool message
 log() {
   local key="$1"
   local version="${2:-}"
@@ -86,7 +86,7 @@ log() {
   printf "%b%-${KEY_MAX_LENGTH}s%b %b%s%b\t%b\n" "$BLUE" "$key" "$NO_COLOR" "$ORANGE" "$version" "$NO_COLOR" "$message"
 }
 
-# Log message with a specific level
+# Print message with a specific level
 echo_log() {
   local level="$1"; shift
   local color
@@ -115,22 +115,22 @@ echo_up() {
   echo -en "\r\033[A\033[2K"
 }
 
-# Print an message to stderr
-# $@: The message to print
+# Print to stderr
 echo_stderr() {
   echo -e "$@" 1>&2
 }
 
-# Install method using golang.
+# Install using go
+# Use go install and move the binary to the destination
 method_go_install() {
   local key="$1"
   local version="$2"
   local destination_dir="$3"
   local destination="$4"
 
-  local source_url; source_url="$(get_config_format "$key" "url" "" "$version")"
-  if [ -z "$source_url" ]; then
-    echo_stderr "URL not found"
+  local origin; origin="$(get_config_format "$key" "origin" "" "$version")"
+  if [ -z "$origin" ]; then
+    echo_stderr "origin not found"
     return 1
   fi
 
@@ -138,19 +138,21 @@ method_go_install() {
   local tmp_dir="$TMP_DIR/$key"
   mkdir -p "$tmp_dir"
 
-  GOBIN="$tmp_dir" go install  -v "$source_url" 2>&1
+  GOBIN="$tmp_dir" go install  -v "$origin" 2>&1
 
   install --no-target-directory --mode=0755 "$tmp_dir/$path" "$destination"
 }
 
-# Extra installation step for golang toolchain.
+# Extra installation for golang
+# This is a specific case for the golang toolchain only
 method_extra_golang_install() {
   local destination="$4"
 
   "${destination}" download 2>&1
 }
 
-# Extra uninstallation step for golang toolchain.
+# Extra uninstallation for golang
+# This is a specific case for the golang toolchain only
 method_extra_golang_uninstall() {
   local destination_linkname="$3"
 
@@ -159,27 +161,29 @@ method_extra_golang_uninstall() {
   fi
 }
 
-# Install method using archive.
-# Supported formats: tar, zip, raw binary
+# Install from an archive
+# Use curl to download from the URL, then extract the archive and install the binary
+# Raw binary is also supported
+# Supported archives: tar and zip
 method_archive_install() {
   local key="$1"
   local version="$2"
   local destination_dir="$3"
   local destination="$4"
 
-  local source_url; source_url="$(get_config_format "$key" "url" "" "$version")"
-  if [ -z "$source_url" ]; then
-    echo_stderr "URL not found"
+  local origin; origin="$(get_config_format "$key" "origin" "" "$version")"
+  if [ -z "$origin" ]; then
+    echo_stderr "origin not found"
     return 1
   fi
 
-  local archivefile="$TMP_DIR/${source_url##*/}"
+  local archivefile="$TMP_DIR/${origin##*/}"
   local archive_path; archive_path="$(get_config_format "$key" "path" "$key" "$version")"
   local strip_components; strip_components="$(get_config "$key" "strip_components" 1)"
   # Magic trick to both capture and print curl stderr
   # This is to show the progress bar and capture the error message if any
   exec 3>&1
-  if ! output="$(curl -# --fail --connect-timeout 3 --location --output "$archivefile" "$source_url" 2>&1 | tee >(cat - >&3))"; then
+  if ! output="$(curl -# --fail --connect-timeout 3 --location --output "$archivefile" "$origin" 2>&1 | tee >(cat - >&3))"; then
     echo_stderr "${output}"
     return 1
   fi
@@ -209,25 +213,25 @@ method_archive_install() {
 
 # Install tool in the specified destination directory.
 install_command() {
-  local key="$1"
-  local destination_dir="$2"
-
-  log "$key" "" "processing ..."
+  local destination_dir="$1"
+  local key="$2"
 
   local version; version="$(get_config "$key" "version")"
+  local pattern; pattern="$(get_config "$key" "version_pattern" "$DEFAULT_VERSION_PATTERN")"
+
+  log "$key" "$version" "processing ..."
 
   # Either version or repository must be set
   # if both are set, prefer version
   # repository is used to fetch the latest version
-  local pattern; pattern="$(get_config "$key" "version_pattern" "$DEFAULT_VERSION_PATTERN")"
   if [ -z "$version" ] || [ "$version" = "latest" ]; then
     local repository; repository="$(get_config "$key" "repository")"
     if [ -z "$repository" ]; then
-      echo_stderr "version not configured"
+      log "$key" "" "repository not configured"
       return 1
     fi
 
-    if [[ "$mode" != "list" ]]; then
+    if [ "$mode" != "list" ]; then
       echo_up
       log "$key" "" "fetching latest version ..."
       version="$(git ls-remote --tags --sort version:refname "$repository" | awk '{print $2}' | cut -d/ -f3 | grep -E "$pattern" | tail -n 1)"
@@ -238,23 +242,23 @@ install_command() {
   local destination="${destination_dir}/${bin_name}"
   local destination_linkname="${destination_dir}/${key}"
 
-  # check if the destination already exists
-  if [[ -f "$destination" ]] && [[ "$destination" -ef "$destination_linkname" ]]; then
+  if [ -f "$destination" ] && [ "$destination" -ef "$destination_linkname" ]; then
     echo_up
     log "$key" "$version" "${GREEN}installed${NO_COLOR}"
     return 0
   fi
 
-  if [[ -n "$mode" ]]; then
-    local target; target="$(readlink -f "$destination_linkname")"
-    if [ ! -f "$target" ]; then
+  local destination_linkname_target; destination_linkname_target="$(readlink -f "$destination_linkname")"
+
+  if [ -n "$mode" ]; then
+    if [ ! -f "$destination_linkname_target" ]; then
       echo_up
       log "$key" "$version" "${RED}not found${NO_COLOR}"
       return 0
     fi
 
+    local basename="${destination_linkname_target##*/}"
     local bin_pattern; bin_pattern="$(get_bin_format "$key" "($pattern)")"
-    local basename="${target##*/}"
     local current_version; current_version="$(echo "$basename" | sed -nE "s/${bin_pattern}/\1/p")"
     if [ -z "$current_version" ]; then
       echo_up
@@ -262,13 +266,9 @@ install_command() {
       return 0
     fi
 
-    if [[ "$mode" == "list" ]]; then
+    if [ "$mode" != "list" ] && [ "$version" != "$current_version" ]; then
       echo_up
-      log "$key" "$current_version" "${GREEN}installed${NO_COLOR}"
-      return 0
-    elif [[ "$version" != "$current_version" ]]; then
-      echo_up
-      log "$key" "$current_version" "${PURPLE}outdated${NO_COLOR}"
+      log "$key" "$current_version" "${PURPLE}outdated${NO_COLOR}\t new version $version"
       return 0
     fi
   else
@@ -289,11 +289,8 @@ install_command() {
       "method_extra_${extra_method}_install" "$key" "$version" "$destination_dir" "$destination" | stdbuf -o0 tr '\n' '\r'
     fi
 
-    if [ -L "$destination_linkname" ] && [ ! "$destination" -ef "$destination_linkname" ]; then
-      # remove previous linked file
-      local target; target="$(readlink -f "$destination_linkname")"
-      test -f "$target" && rm "$target"
-    fi
+    # remove previous linked file
+    test -f "$destination_linkname_target" && rm "$destination_linkname_target"
 
     ln -rfs "$destination" "$destination_linkname"
   fi
@@ -303,12 +300,11 @@ install_command() {
 }
 
 uninstall_command() {
-  local key="$1"
-  local destination_dir="$2"
+  local destination_dir="$1"
+  local key="$2"
 
   log "$key" "" "processing"
 
-  local version; version="$(get_config "$key" "version")"
   local destination_linkname="${destination_dir}/${key}"
 
   local extra_method; extra_method="$(get_config "$key" "method_extra")"
@@ -382,7 +378,7 @@ run() {
   set +e
   for key in "$@"; do
     if [ ! -v "${key}_version" ]; then
-      log "$key" "" "not configured"
+      log "$key" "" "version not configured"
       continue
     fi
 
@@ -391,7 +387,7 @@ run() {
     {
       error="$({
         set -e
-        "$f" "$key" "$destination_dir" 1>&3
+        "$f" "$destination_dir" "$key" 1>&3
       } 2>&1 )"
     } 3>&1
 
@@ -416,6 +412,7 @@ main() {
   local destination_dir="$DEFAULT_DESTINATION_DIR"
   local config_file="$DEFAULT_CONFIG_FILE"
   local keys=()
+  local no_header=false
   mode=""
 
   # Process arguments
@@ -441,6 +438,9 @@ main() {
         ;;
       --list)
         mode="list"
+        ;;
+      --no-header)
+        no_header=true
         ;;
       --tools)
         # Parse the comma-separated list of keys
@@ -477,7 +477,7 @@ main() {
   # Ensure the config is initialized
   init_config "$config_file"
 
-  if [[ "${#keys[@]}" -eq 0 ]]; then
+  if [ "${#keys[@]}" -eq 0 ]; then
     # If no keys are provided, use all keys found in the config file
     readarray -t keys < <(get_keys "$config_file")
     if [ "${#keys[@]}" -eq 0 ]; then
@@ -500,6 +500,7 @@ main() {
   mkdir -p "$destination_dir"
 
   # Run the command
+  ! $no_header &&  printf "%-${KEY_MAX_LENGTH}s %s\t%s\n" "tool" "version" "status"
   run "$cmd" "$destination_dir" "${keys[@]}"
 }
 
