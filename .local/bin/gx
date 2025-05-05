@@ -2,34 +2,51 @@
 
 set -eu
 
-# Cache directory and file
+# Cache directory and expiry time
 CACHE_DIR="${HOME}/.cache/gx"
 CACHE_EXPIRY="5 minutes"
+KUBECTL_TIMEOUT="5s"
+
+# Colors
+ORANGE='\033[0;33m'
+NO_COLOR='\033[0m'
 
 # Print usage
 print_usage() {
-  bin_name="$(basename $0)"
+  bin_name="$(basename "$0")"
   echo "Usage:
-  $bin_name [ login ] <installation> [ <separator> <cluster> ]  Create kubeconfig for the given installation or cluster
-  $bin_name ssh <installation or cluster> <node>                SSH into the given node
+  $bin_name [ login ] <installation> [ <separator> <cluster> ]         Create kubeconfig for the given installation or cluster
+  $bin_name ssh       <installation> [ <separator> <cluster> ] <node>  SSH into the given node
+  $bin_name open      <installation>                           <app>   Get the URL for the given app
 
 Arguments:
   <installation>  installation name
+  <separator>     any non alphanumeric character surrounded by spaces or not. i.e. can be a single space
   <cluster>       cluster name
-  <node>          node name
-  <separator>     any non alphanumeric character
+  <node>          node hostname, or ip
+  <app>           app name
 
 Examples:
   $bin_name my-installation
   $bin_name my-installation my-cluster
-  $bin_name ssh my-installation my-node
-  $bin_name ssh my-cluster my-node"
+  $bin_name my-installation-my-cluster
+  $bin_name my-installation / my-cluster
+  $bin_name ssh my-installation ip-11-1-111-11
+  $bin_name ssh my-installation my-cluster ip-11-1-111-11
+  $bin_name open my-installation my-app"
 }
 
-echo_stderr() {
-    >&2 echo "$@"
+exit_usage() {
+  echo "ERROR: Missing arguments" 1>&2
+  print_usage
+  exit 1
 }
 
+log() {
+  echo -e "► $@" 1>&2
+}
+
+# Join arguments with a separator
 join_by() {
   local IFS="$1"
   shift
@@ -37,31 +54,36 @@ join_by() {
 }
 
 # Download and cache tsh data
+# It accepts any tsh command and caches the result in a file
+# The cache file is named after the command
 tsh_cache() {
   tsh_cmd="$@"
-  cache_name="$(join_by "_" $tsh_cmd)"
+  cache_name="$(join_by "_" "$tsh_cmd")"
   cache_file="$CACHE_DIR/tsh_${cache_name}.json"
 
   mkdir -p "${CACHE_DIR}"
   expiry="$(date -d "- $CACHE_EXPIRY" +%s)"
   if [ ! -f "$cache_file" ] || [ "$(stat --printf=%Y "$cache_file")" -le "$expiry" ]; then
-    echo_stderr "> Downloading tsh $tsh_cmd"
+    log "Downloading tsh $tsh_cmd"
     tsh $tsh_cmd --format json > "$cache_file"
   fi
 
   cat "$cache_file"
 }
 
+# Replace non-alphanumeric characters with spaces
 get_clusters_names() {
   if [[ "$@" =~ leopard ]]; then
-    echo "/!\ VPN access doesn't work for leopard, see: https://github.com/giantswarm/installations/tree/master/leopard#access-resources-via-teleport" 1>&2
+    log "${ORANGE}Warning${NO_COLOR} vpn access doesn't work for leopard, see: https://github.com/giantswarm/installations/tree/master/leopard#access-resources-via-teleport"
   fi
 
   # replace separator with space
-  echo -n "$@" | sed -e 's/[^[:alnum:]]/ /1'
+  echo -n "$@" | sed -e 's/[^[:alnum:]]\+/ /1'
 }
 
 create_kubeconfig() {
+  test $# -ge 1 || exit_usage
+
   # split words on spaces
   values=($(get_clusters_names "$@"))
 
@@ -75,20 +97,19 @@ create_kubeconfig() {
   tsh_matcher="${installation}"
 
   # if there are more than 2 values, the last one is the cluster
-  values_length=${#values[@]}
-  if [ $values_length -ge 2 ]; then
-    cluster="${values[$values_length-1]}"
+  if [ ${#values[@]} -ge 2 ]; then
+    cluster="${values[1]}"
     context_matcher="${installation}-${cluster}"
     tsh_matcher="${installation}-${cluster}"
   fi
 
   # Check if the kubectl context already exists
   if CONTEXTS=$(kubectl config get-contexts -oname | grep "${context_matcher}"); then
-    echo_stderr "► Checking for existing kubectl contexts"
+    log "Checking for existing kubectl contexts"
     for c in $CONTEXTS; do
       # Test if the context is valid and switch to it if it is
-      timeout 5s kubectl --context "${c}" get nodes &>/dev/null && \
-        kubectx "${c}" && \
+      timeout "$KUBECTL_TIMEOUT" kubectl --context "${c}" get nodes &>/dev/null && \
+        kubectl config use-context "${c}" && \
         exit 0
       done
   fi
@@ -97,62 +118,72 @@ create_kubeconfig() {
   tsh_ok="$(tsh_cache kube ls | jq '.[] | select(.kube_cluster_name == "'"$tsh_matcher"'") | true')"
 
   # use tsh or opsctl to login
-  command=""
+  cmd=""
   if [ "$tsh_ok" == "true" ]; then
-    command="tsh kube login "${tsh_matcher}""
+    cmd="tsh kube login ${tsh_matcher}"
   else
-    command="opsctl login "${installation}" "${cluster}""
+    cmd="opsctl login ${installation} ${cluster}"
   fi
 
   (
     set -ex
-    $command
+    $cmd
   )
 }
 
 open_app() {
+  test $# -ge 2 || exit_usage
+
   installation="$(get_clusters_names "$1")"
   app_name="$2"
 
-  tsh_app_name="$(tsh_cache apps ls | jq -r '.[] | select(.metadata.labels["cluster"] == "'"$installation"'") | select(.metadata.labels["app"] == "'"$app_name"'") | .metadata.name')"
+  tsh_app_name="$(tsh_cache apps ls | jq -r '.[] | select((.metadata.labels["cluster"] == "'"$installation"'") and (.metadata.labels["app"] == "'"$app_name"'")) | .metadata.name')"
   if [ -n "$tsh_app_name" ]; then
-    command="tsh app login ${tsh_app_name}"
+    cmd="tsh app login ${tsh_app_name}"
   else
-    command="opsctl open --app ${app_name} --installation ${installation}"
+    cmd="opsctl open --app ${app_name} --installation ${installation} --no-browser"
   fi
 
   (
     set -ex
-    $command | tail -n 1 | xargs
+    $cmd | tail -n 1 | xargs
   )
-
-  #url=$(opsctl open --app "$2" --installation "$1" --no-browser)
-  #echo "$url"
 }
 
 ssh_node() {
+  test $# -ge 2 || exit_usage
+
+  # node is always the last argument
+  node="${@: -1}"
+
+  # remove the last argument from the list
+  set -- "${@:1:$#-1}"
   # split words on spaces
   values=($(get_clusters_names "$@"))
 
-  # cluster is always the first value
-  cluster_name="${values[0]}"
-  node_name="${values[1]}"
+  # installation is always the first value
+  installation="${values[0]}"
+  cluster_name=""
+
+  if [ ${#values[@]} -ge 2 ]; then
+    cluster_name="${values[1]}"
+  fi
 
   # Check if the node exists in tsh
-  node_matcher="$(echo "${node_name}" | cut -d'.' -f1)"
-  tsh_ok="$(tsh_cache ls | jq '.[] | select(.spec.hostname == "'"$node_matcher"'") | select(.metadata.labels["cluster"] == "'"$cluster_name"'") | true')"
+  node_matcher="$(echo "${node}" | cut -d'.' -f1)"
+  tsh_ok="$(tsh_cache ls | jq '.[] | select((.spec.hostname == "'"$node_matcher"'") and (.metadata.labels["ins"] == "'"$installation"'") and (.metadata.labels["cluster"] == "'"${cluster_name:-$installation}"'")) | true')"
 
   # use tsh or opsctl to ssh
-  command=""
+  cmd=""
   if [ "$tsh_ok" == "true" ]; then
-    command="tsh ssh root@cluster=${cluster_name},node=${node_matcher}"
+    cmd="tsh ssh root@ins=${installation},cluster=${cluster_name:-$installation},node=${node_matcher}"
   else
-    command="opsctl ssh ${cluster_name} ${node_name}"
+    cmd="opsctl ssh ${installation} ${node}"
   fi
 
   (
     set -ex
-    $command
+    $cmd
   )
 }
 
