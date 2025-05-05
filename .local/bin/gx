@@ -52,12 +52,18 @@ tsh_cache() {
   cat "$cache_file"
 }
 
-create_kubeconfig() {
-  # replace separator with space
-  args=$(echo -n "$@" | sed -e 's/[^[:alnum:]]/ /1')
+get_clusters_names() {
+  if [[ "$@" =~ leopard ]]; then
+    echo "/!\ VPN access doesn't work for leopard, see: https://github.com/giantswarm/installations/tree/master/leopard#access-resources-via-teleport" 1>&2
+  fi
 
+  # replace separator with space
+  echo -n "$@" | sed -e 's/[^[:alnum:]]/ /1'
+}
+
+create_kubeconfig() {
   # split words on spaces
-  values=($args)
+  values=($(get_clusters_names "$@"))
 
   # installation is always the first value
   installation="${values[0]}"
@@ -105,7 +111,7 @@ create_kubeconfig() {
 }
 
 open_app() {
-  installation="$1"
+  installation="$(get_clusters_names "$1")"
   app_name="$2"
 
   tsh_app_name="$(tsh_cache apps ls | jq -r '.[] | select(.metadata.labels["cluster"] == "'"$installation"'") | select(.metadata.labels["app"] == "'"$app_name"'") | .metadata.name')"
@@ -125,16 +131,12 @@ open_app() {
 }
 
 ssh_node() {
-  # replace separator with space
-  args=$(echo -n "$@" | sed -e 's/[^[:alnum:]]/ /1')
-
   # split words on spaces
-  values=($args)
+  values=($(get_clusters_names "$@"))
 
   # cluster is always the first value
   cluster_name="${values[0]}"
   node_name="${values[1]}"
-
 
   # Check if the node exists in tsh
   node_matcher="$(echo "${node_name}" | cut -d'.' -f1)"
