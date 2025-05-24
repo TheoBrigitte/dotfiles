@@ -74,9 +74,16 @@ main() {
     icon_theme_name="$ICON_THEME_DARK"
   fi
 
+  xfce4-appearance-settings &
+  xfce4_appearance_settings_pid=$!
+  sleep 0.5  # Give the settings dialog time to open
+
   switch_shell_theme "$shell_theme_name" "$shell_theme_path"
   switch_tmux_theme "$shell_theme_name"
   switch_desktop_theme "$desktop_theme_name" "$icon_theme_name"
+
+  sleep 0.5  # Allow time for the changes to take effect
+  kill "$xfce4_appearance_settings_pid"
 }
 
 main "$@"
