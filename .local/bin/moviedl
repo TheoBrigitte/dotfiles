@@ -5,50 +5,64 @@ set -eu
 SSH_HOSTNAME="dl"
 
 print_usage() {
-	echo "Usage: $(basename $0) [ -h ] [ <filename> ]
+  echo "Usage: $(basename $0) [ -h ] [ -d ] [ -n NUM ] [ <name> ]
 Download files from \"$SSH_HOSTNAME\" host
 
   -h | help             print this help
+  -d                    only directories
   -n                    number of files to list (0 for all)
-  <query>               search for files matching <query> in the name"
+  <name>                search for files matching <name>"
 }
 
-if [ $# -gt 3 ]; then
-	echo "Error: too many arguments"
-	echo
-	print_usage
-	exit 1
-fi
+main() {
+  NUM_FILES=10
+  TYPE_FILTER="f"
 
-NUM_FILES=10
-if [ $# -gt 0 ]; then
-	if [ "${1}" == "-h" ] || [ "${1}" == "help" ]; then
-		print_usage
-		exit 0
-	fi
+  # Process arguments
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      -d)
+        TYPE_FILTER="d"
+        ;;
+      -h|--help)
+        print_usage
+        exit
+        ;;
+      -n)
+        NUM_FILES=${2-}
+        if [[ -n "$NUM_FILES" ]]; then
+          echo 'ERROR: "-n" requires an argument.' >&2
+          exit 1
+        fi
+        shift
+        ;;
+      -?*)
+        echo "WARN: Unknown option $1" >&2
+        ;;
+      *)
+        # No more options.
+        break
+        ;;
+    esac
+    shift
+  done
 
-	if [ "${1}" == "-n" ]; then
-		shift
-		NUM_FILES="${1}"
-		shift
-	fi
-fi
-if [ $NUM_FILES -gt 0 ]; then
-	TAIL_CMD="tail -n ${NUM_FILES}"
-else
-	TAIL_CMD="cat"
-fi
+  TAIL_CMD="tail -n ${NUM_FILES}"
+  if [[ $NUM_FILES -le 0 ]]; then
+    TAIL_CMD="cat"
+  fi
 
-QUERY=""
-if [ $# -gt 0 ]; then
-	QUERY="${@}"
-	shift
-fi
+  QUERY=""
+  if [[ $# -gt 0 ]]; then
+    QUERY="$@"
+  fi
 
-#FILE=$(ssh dl -- find -type f|fzf)
-FILE="$(ssh dl -- 'find -not -path "*/.*" -type f -printf "%TY-%Tm-%Td %TT %p\n" | sort -n | '"$TAIL_CMD"'' | fzf --tac --exact --select-1 --exit-0 --query "$QUERY")"
+  FILE="$(ssh dl -- 'find -not -path "*/.*" -mindepth 1 -type '"$TYPE_FILTER"' -printf "%TY-%Tm-%Td %TT %p\n" | sort -n | '"$TAIL_CMD"'' | fzf --tac --exact --select-1 --exit-0 --query "$QUERY")"
+  FILEPATH="$(echo "${FILE}" | cut -d' ' -f3-)"
 
-FILEPATH="$(echo "${FILE}" | cut -d' ' -f3-)"
-#echo "> play with : nohup vlc ~/Videos/${FILEPATH} &"
-echo "> downloading file \"${FILEPATH}\" to ~/Videos/"
-rsync -avP --progress --inplace "dl:${FILEPATH}" ~/Videos/
+  #echo "> play with : nohup vlc ~/Videos/${FILEPATH} &"
+  echo "> downloading file \"${FILEPATH}\" to ~/Videos/"
+  rsync -avP --progress --inplace "dl:${FILEPATH}" ~/Videos/
+}
+
+main "$@"
