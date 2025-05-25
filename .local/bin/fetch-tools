@@ -129,7 +129,7 @@ method_go_install() {
   local destination="$4"
 
   local origin; origin="$(get_config_format "$key" "origin" "" "$version")"
-  if [ -z "$origin" ]; then
+  if [[ -z "$origin" ]]; then
     echo_stderr "origin not found"
     return 1
   fi
@@ -172,7 +172,7 @@ method_archive_install() {
   local destination="$4"
 
   local origin; origin="$(get_config_format "$key" "origin" "" "$version")"
-  if [ -z "$origin" ]; then
+  if [[ -z "$origin" ]]; then
     echo_stderr "origin not found"
     return 1
   fi
@@ -224,14 +224,14 @@ install_command() {
   # Either version or repository must be set
   # if both are set, prefer version
   # repository is used to fetch the latest version
-  if [ -z "$version" ] || [ "$version" = "latest" ]; then
+  if [[ -z "$version" ]] || [[ "$version" = "latest" ]]; then
     local repository; repository="$(get_config "$key" "repository")"
-    if [ -z "$repository" ]; then
+    if [[ -z "$repository" ]]; then
       log "$key" "" "repository not configured"
       return 1
     fi
 
-    if [ "$mode" != "list" ]; then
+    if [[ "$mode" != "list" ]]; then
       echo_up
       log "$key" "" "fetching latest version ..."
       version="$(git ls-remote --tags --sort version:refname "$repository" | awk '{print $2}' | cut -d/ -f3 | grep -E "$pattern" | tail -n 1)"
@@ -242,7 +242,7 @@ install_command() {
   local destination="${destination_dir}/${bin_name}"
   local destination_linkname="${destination_dir}/${key}"
 
-  if [ -f "$destination" ] && [ "$destination" -ef "$destination_linkname" ]; then
+  if [[ -f "$destination" ]] && [[ "$destination" -ef "$destination_linkname" ]]; then
     echo_up
     log "$key" "$version" "${GREEN}installed${NO_COLOR}"
     return 0
@@ -250,8 +250,8 @@ install_command() {
 
   local destination_linkname_target; destination_linkname_target="$(readlink -f "$destination_linkname")"
 
-  if [ -n "$mode" ]; then
-    if [ ! -f "$destination_linkname_target" ]; then
+  if [[ -n "$mode" ]]; then
+    if [[ ! -f "$destination_linkname_target" ]]; then
       echo_up
       log "$key" "$version" "${RED}not found${NO_COLOR}"
       return 0
@@ -260,13 +260,13 @@ install_command() {
     local basename="${destination_linkname_target##*/}"
     local bin_pattern; bin_pattern="$(get_bin_format "$key" "($pattern)")"
     local current_version; current_version="$(echo "$basename" | sed -nE "s/${bin_pattern}/\1/p")"
-    if [ -z "$current_version" ]; then
+    if [[ -z "$current_version" ]]; then
       echo_up
       log "$key" "$version" "${RED}invalid${NO_COLOR}"
       return 0
     fi
 
-    if [ "$mode" != "list" ] && [ "$version" != "$current_version" ]; then
+    if [[ "$mode" != "list" ]] && [[ "$version" != "$current_version" ]]; then
       echo_up
       log "$key" "$current_version" "${PURPLE}outdated${NO_COLOR}\t new version $version"
       return 0
@@ -358,7 +358,7 @@ get_keys() {
 set_key_max_length() {
   for key in "$@"; do
     local length="${#key}"
-    if [ "$length" -gt "$KEY_MAX_LENGTH" ]; then
+    if [[ "$length" -gt "$KEY_MAX_LENGTH" ]]; then
       KEY_MAX_LENGTH="$length"
     fi
   done
@@ -377,7 +377,7 @@ run() {
   # Process each tool
   set +e
   for key in "$@"; do
-    if [ ! -v "${key}_version" ]; then
+    if [[ ! -v "${key}_version" ]]; then
       log "$key" "" "version not configured"
       continue
     fi
@@ -392,7 +392,7 @@ run() {
     } 3>&1
 
     test $? -eq 0 && continue
-    if [ -z "$error" ]; then
+    if [[ -z "$error" ]]; then
       error="${RED}failed${NO_COLOR} processing"
     else
       error="${RED}failed${NO_COLOR} - $error"
@@ -416,14 +416,14 @@ main() {
   mode=""
 
   # Process arguments
-  while [ $# -gt 0 ]; do
+  while [[ $# -gt 0 ]]; do
     case $1 in
       --check-only)
         mode="check"
         ;;
       --config)
         config_file="${2:-}"
-        if [ -z "$config_file" ]; then
+        if [[ -z "$config_file" ]]; then
           echo_log error "--config requires an argument"
           exit 1
         fi
@@ -445,7 +445,7 @@ main() {
       --tools)
         # Parse the comma-separated list of keys
         IFS=, read -r -a keys <<< "${2:-}"
-        if [ "${#keys[@]}" -eq 0 ]; then
+        if [[ "${#keys[@]}" -eq 0 ]]; then
           echo_log error "--tools requires an argument"
           exit 1
         fi
@@ -477,10 +477,10 @@ main() {
   # Ensure the config is initialized
   init_config "$config_file"
 
-  if [ "${#keys[@]}" -eq 0 ]; then
+  if [[ "${#keys[@]}" -eq 0 ]]; then
     # If no keys are provided, use all keys found in the config file
     readarray -t keys < <(get_keys "$config_file")
-    if [ "${#keys[@]}" -eq 0 ]; then
+    if [[ "${#keys[@]}" -eq 0 ]]; then
       echo_log warning "no tools configured in $config_file"
       exit 1
     fi
@@ -500,7 +500,7 @@ main() {
   mkdir -p "$destination_dir"
 
   # Run the command
-  ! $no_header &&  printf "%-${KEY_MAX_LENGTH}s %s\t%s\n" "tool" "version" "status"
+  ! $no_header && printf "%-${KEY_MAX_LENGTH}s %s\t%s\n" "tool" "version" "status"
   run "$cmd" "$destination_dir" "${keys[@]}"
 }
 
