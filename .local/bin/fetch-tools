@@ -92,21 +92,19 @@ echo_log() {
   local color
 
   case "$level" in
-    "info")
-      color="$CYAN"
-      ;;
-    "warning")
-      color="$ORANGE"
-      ;;
-    "error")
-      color="$RED"
-      ;;
-    *)
-      color="$NO_COLOR"
-      ;;
+    info)     color="$CYAN";;
+    warning)  color="$ORANGE";;
+    error)    color="$RED";;
+    *)        color="$NO_COLOR";;
   esac
 
   echo -e "${color}${level^^}${NO_COLOR}\t" "$@"
+}
+
+exit_log() {
+  local level="$1"; shift
+  echo_log "$level" "$@"
+  exit 1
 }
 
 # Move the cursor up one line and clear the line
@@ -418,47 +416,24 @@ main() {
   # Process arguments
   while [[ $# -gt 0 ]]; do
     case $1 in
-      --check-only)
-        mode="check"
-        ;;
+      --check-only) mode="check";;
       --config)
         config_file="${2:-}"
-        if [[ -z "$config_file" ]]; then
-          echo_log error "--config requires an argument"
-          exit 1
-        fi
-        shift
-        ;;
-      --debug)
-        DEBUG=true
-        ;;
+        [[ -z "$config_file" ]] && exit_log error "--config requires an argument"
+        shift;;
+      --debug) DEBUG=true;;
       -h|--help)
         usage
-        exit
-        ;;
-      --list)
-        mode="list"
-        ;;
-      --no-header)
-        no_header=true
-        ;;
+        exit;;
+      --list) mode="list";;
+      --no-header) no_header=true;;
       --tools)
         # Parse the comma-separated list of keys
         IFS=, read -r -a keys <<< "${2:-}"
-        if [[ "${#keys[@]}" -eq 0 ]]; then
-          echo_log error "--tools requires an argument"
-          exit 1
-        fi
-        shift
-        ;;
-      -?*)
-        echo_log error "unknown option $1"
-        exit
-        ;;
-      *)
-        # No more options.
-        break
-        ;;
+        [[ "${#keys[@]}" -eq 0 ]] && exit_log error "--tools requires an argument"
+        shift;;
+      -?*) exit_log error "unknown option $1";;
+      *) break;; # No more options.
     esac
     shift
   done
@@ -466,10 +441,7 @@ main() {
   local cmd="${1:-$DEFAULT_COMMAND}_command"
 
   # Check if the command exists
-  if ! declare -F "$cmd" &> /dev/null; then
-    echo_log error "unknown command $1"
-    exit 1
-  fi
+  declare -F "$cmd" &> /dev/null || exit_log error "unknown command $1"
 
   # Check if the destination directory is in PATH
   check_path
@@ -477,24 +449,16 @@ main() {
   # Ensure the config is initialized
   init_config "$config_file"
 
-  if [[ "${#keys[@]}" -eq 0 ]]; then
-    # If no keys are provided, use all keys found in the config file
-    readarray -t keys < <(get_keys "$config_file")
-    if [[ "${#keys[@]}" -eq 0 ]]; then
-      echo_log warning "no tools configured in $config_file"
-      exit 1
-    fi
-  fi
+  # If no keys are provided, use all keys found in the config file
+  [[ "${#keys[@]}" -eq 0 ]] && readarray -t keys < <(get_keys "$config_file")
+  [[ "${#keys[@]}" -eq 0 ]] && exit_log warning "no tools configured in $config_file"
 
   # Set the maximum length of the keys for formatting
   set_key_max_length "${keys[@]}"
 
   # Load the config file
   # shellcheck source=/dev/null
-  if ! source "$config_file" >/dev/null; then
-    echo_log error "failed loading config $config_file"
-    exit 1
-  fi
+  source "${config_file}" &>/dev/null || exit_log error "failed loading config $config_file"
 
   # Create the destination directory if it doesn't exist
   mkdir -p "$destination_dir"
