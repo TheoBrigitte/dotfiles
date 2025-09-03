@@ -1,0 +1,98 @@
+#!/bin/bash
+
+set -eu
+
+SCRIPT_DIR=$(cd $(dirname "${BASH_SOURCE}") && pwd -P)
+
+# Default values
+DEFAULT_CONFIG_FILE="$HOME/.config/boot-manager/boot-manager.conf"
+KERNEL_INSTALL_CONF="$HOME/.config/boot-manager/kernel"
+LIB_DIR="$HOME/.local/lib/boot-manager"
+
+BIN_NAME="$(basename "$0")"
+
+# Logging colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+ORANGE='\033[0;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
+NO_COLOR='\033[0m'
+
+# Load libraries
+for f in "$LIB_DIR/"*.sh; do source $f; done
+
+help_command() {
+  cat <<-EOF
+	Usage: $BIN_NAME [options] [command]
+
+	This script manage boot rescue elements: bootloader, initramfs, kernel.
+
+	Commands:
+	  status             Show the current status of boot elements
+	  backup             Backup the current boot elements
+	  verify             Verify the backup integrity
+	  update-bootloader  Update the bootloader
+	  install-kernel     Update the kernel
+	  config             Manage the configuration file
+	  help               Show this help message
+
+	Options:
+	  --config  <config_file>  Path to the configuration file (default: $DEFAULT_CONFIG_FILE).
+EOF
+}
+
+exit_error() {
+  echo_stderr "${RED}error${NO_COLOR} $@"
+  exit 1
+}
+
+echo_stderr() {
+  echo -e "$@" >&2
+}
+
+run_cmd() {
+  local cmd="${1}_command"
+
+  # Check if the command exists
+  declare -F "$cmd" &> /dev/null || exit_error "unknown command"
+  shift
+
+  # Run the command
+  "$cmd" "$@"
+}
+
+main() {
+  # Arguments
+  local config_file="$DEFAULT_CONFIG_FILE"
+
+  # Process arguments
+  local args=()
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      --config)
+        config_file="${2:-}"
+        [[ -z "$config_file" ]] && exit_error "--config requires an argument"
+        shift;;
+      -?*) exit_error "unknown option $1";;
+      *)
+        args+=("$1");;
+    esac
+    shift
+  done
+
+	# Reset positional parameters to remaining arguments.
+  set -- "${args[@]}"
+
+  # Load the config file
+  #source "$config_file" &>/dev/null || exit_error "failed loading config $config_file"
+  config_load_command "$config_file"
+
+  # Run the command
+  local main_command="${1:-status}"
+  [[ $# -gt 0 ]] && shift
+  run_cmd "$main_command" "$@"
+}
+
+main "$@"

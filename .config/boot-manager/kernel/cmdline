@@ -1,0 +1,1 @@
+root=UUID=4604eb05-9aeb-453f-9cd2-6d6e6f30ee9f rw apparmor=1 security=apparmor resume=UUID=d463e634-4e5a-4ca3-9de7-297df5e0ac08 udev.log_priority=3 add_efi_memmap nmi_watchdog=0 rd.luks.options=password-echo=no,timeout=0 systemd.machine_id=6c0d627784e94f6aadf61b970eb4b197 systemd.unit=rescue.target

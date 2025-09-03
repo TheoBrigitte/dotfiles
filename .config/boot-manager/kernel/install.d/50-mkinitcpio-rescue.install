@@ -1,0 +1,6 @@
+#!/bin/bash
+
+set -eu
+
+echo "Generating rescue initramfs for kernel $4"
+mkinitcpio -k "$4" -g "$KERNEL_INSTALL_STAGING_AREA/initrd" -S autodetect
