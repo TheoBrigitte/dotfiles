@@ -1,0 +1,65 @@
+#!/bin/bash
+#
+# Manage PairDrop which is used for cross-platform file transfer.
+# PairDrop setup instructions: https://github.com/schlagmichdoch/PairDrop/blob/master/docs/host-your-own.md
+# In order to work seamlessly on local network mDNS should be configured on the host machine running this script.
+# mDNS: https://wiki.archlinux.org/title/Systemd-resolved#mDNS
+
+set -eu
+
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+ORANGE='\033[0;33m'
+NC='\033[0m'
+
+# Hostname and port configuration
+hostname="$(hostname).local"
+hostport=80
+display_port=$(test $hostport -eq 80 && echo "" || echo ":$hostport")
+container_name="pairdrop"
+
+_start() {
+  # Check if mDNS is enabled
+  if ! resolvectl status | grep '+DefaultRoute' | grep '+mDNS' &>/dev/null; then
+    echo -e "${ORANGE}[WARN]${NC}  mDNS is not enabled on this host. PairDrop might not be reachable on local network."
+    echo -e "${BLUE}[INFO]${NC}  Waiting 5 seconds before starting PairDrop..."
+    sleep 5
+  fi
+
+  if docker inspect "$container_name" &>/dev/null; then
+    echo -e "${BLUE}[INFO]${NC}  PairDrop is already running at http://$hostname$display_port"
+    exit
+  fi
+
+  # Start PairDrop container
+  docker run --rm -d --name="$container_name" -p "0.0.0.0:$hostport:3000" lscr.io/linuxserver/pairdrop 1>/dev/null
+
+  # Wait until PairDrop is reachable
+  while ! curl -s "http://localhost:$hostport" &>/dev/null; do
+    echo -e "${BLUE}[INFO]${NC}  Waiting for PairDrop to start..."
+    sleep 2
+  done
+
+  # Print host information
+  echo -e "${GREEN}[ OK ]${NC}  PairDrop is running at http://$hostname$display_port"
+}
+
+_stop() {
+  if ! docker inspect "$container_name" &>/dev/null; then
+    echo -e "${BLUE}[INFO]${NC}  PairDrop is not running."
+    exit
+  fi
+
+  echo -e "${BLUE}[INFO]${NC}  Stopping PairDrop..."
+  docker stop "$container_name" 1>/dev/null
+  echo -e "${GREEN}[ OK ]${NC}  PairDrop has been stopped."
+}
+
+case "${1:-}" in
+stop) _stop ;;
+-h|--help)
+  echo "Usage: $(basename "$0") {start|stop}"
+  exit 0
+  ;;
+*) _start ;;
+esac
