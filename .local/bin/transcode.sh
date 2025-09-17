@@ -33,11 +33,6 @@
 # - optimized for streaming (faststart)
 # - force keyframes every 3 seconds
 # - mp4 container
-# Specific options:
-# - remove subtitles
-# - only keep french audio track
-# - using crf 25 instead of 23 for less disk space (lower quality)
-# - tune video with animation preset
 
 # Documentation:
 # - x264: https://trac.ffmpeg.org/wiki/Encode/H.264
