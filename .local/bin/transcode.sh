@@ -2,7 +2,7 @@
 #
 # Author: Théo Brigitte
 # Date: 2025-09-16
-
+#
 # Usage: transcode.sh input_file output_file
 #
 # Options:
@@ -49,8 +49,8 @@ exit_error() {
 
 print_help() {
   # Extract usage from the script comments
-  # Print line 6 to the first empty line, removing leading "# "
-  sed -ne '6,/^$/s/#\s\?//p' "$0"
+  # Print from Usage to the first empty line, then remove leading "# "
+  sed -ne '/Usage/,/^$/ s/#\s\?//p' "$0"
 }
 
 # Default options
