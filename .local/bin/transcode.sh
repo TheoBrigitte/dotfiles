@@ -54,11 +54,11 @@ print_help() {
 }
 
 # Default options
-video="0:v"     # keep all video
-audio="0:a"     # keep all audio
-subtitles="0:s" # keep all subtitles
-crf=23          # default CRF value
-tune=""         # no tune by default
+video="0:v:0"     # keep first video
+audio="0:a"       # keep all audio
+subtitles="0:s"   # keep all subtitles
+crf=23            # default CRF value
+tune=""           # no tune by default
 
 # Parse command line arguments
 shopt -s extglob
@@ -95,7 +95,7 @@ while [[ $# -gt 0 ]]; do
       test -z "${2-}" && exit_error "$1 requires an argument"
       tune="-tune $2"; shift;;
     *)
-      exit_error "Unknown option $1";;
+      break;;
   esac
   shift
 done
