@@ -30,7 +30,7 @@ main() {
         ;;
       -n)
         NUM_FILES=${2-}
-        if [[ -n "$NUM_FILES" ]]; then
+        if [[ -z "$NUM_FILES" ]]; then
           echo 'ERROR: "-n" requires an argument.' >&2
           exit 1
         fi
