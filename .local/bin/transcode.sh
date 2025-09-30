@@ -50,7 +50,7 @@ exit_error() {
 print_help() {
   # Extract usage from the script comments
   # Print from Usage to the first empty line, then remove leading "# "
-  sed -ne '/Usage/,/^$/ s/#\s\?//p' "$0"
+  sed -ne '/Usage/,/^$/{p; /^$/q}' "$0" |sed -e '/^$/d; s/#\s\?//'
 }
 
 # Default options
