@@ -91,7 +91,7 @@ main() {
   #   - to_entries converts the object to an array of key-value pairs
   #   - map formats each key-value pair as "key=value"
   #   - join combines the array into a single string with spaces
-  jq --stream --compact-output --raw-input --raw-output \
+  jq --stream --unbuffered --compact-output --raw-input --raw-output \
     'fromjson? | '"$pick_filter"' | '"$del_filter"' | to_entries | map("\(.key)=\(.value|tostring)") | join(" ")' |\
     # Use grep to filter lines based on the provided arguments
     grep --line-buffered --color="${color:-always}" "${@-}" |\
@@ -99,7 +99,7 @@ main() {
     # - Ensure first key is colored
     # - Use ^ to print remaining lines without color
     # - Use lookbehind to match only non-colored values, no [ before the key
-    GREP_COLORS='ms=01;34' grep --color="${color:-auto}" --perl-regexp "^\w+=|^|(?<=[^\[])\s\w+="
+    GREP_COLORS='ms=01;34' grep --line-buffered --color="${color:-auto}" --perl-regexp "^\w+=|^|(?<=[^\[])\s\w+="
 }
 
 main "$@"
