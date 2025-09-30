@@ -2,32 +2,28 @@
 
 set -eu
 
+AUTHOR_ARCHITECT="architectbot"
+AUTHOR_RENOVATE="app/renovate"
+
+AUTHOR="$AUTHOR_ARCHITECT"
+DRY_RUN=false
+
 print_usage() {
   echo "Usage:
   $(basename $0) [ --dry-run ]
 
-Approve and merge architectbot PRs
+Approve and merge PRs
 
-  --dry-run        do not perform any changes."
+  --dry-run        do not perform any changes.
+  --renovate       use $AUTHOR_RENOVATE as author."
 }
 
-
-if [ $# -ge 1 ] && [ "$1" == "-h" ]; then
-  print_usage
-  exit 0
-fi
-
-DRY_RUN=false
-[ $# -ge 1 ] && [ "$1" == "--dry-run" ] &&\
-	DRY_RUN=true
-
-$DRY_RUN && echo "=> running in dry run mode"
 
 approve_and_merge () {
   echo "   approving and merging"
   if ! $DRY_RUN; then
-	  gh -R "$1" pr review --approve teams-alignment-branch
-	  gh -R "$1" pr merge --squash --auto teams-alignment-branch
+    gh -R "$1" pr review --approve teams-alignment-branch
+    gh -R "$1" pr merge --squash --auto teams-alignment-branch
   fi
 
   notification_jq_query=".[] | select(.unread == true and .subject.title == \"Align files\" and .repository.full_name == \"$1\") | .url"
@@ -37,29 +33,67 @@ approve_and_merge () {
   fi
 }
 
-status_urls=$(gh api search/issues -X GET --paginate -F q='type:pr org:giantswarm state:open archived:false author:architectbot review-requested:@me' --template '{{range .items}}{{.repository_url}}{{"\n"}}{{end}}')
+main() {
+  # Process arguments
+  while [ $# -gt 0 ]; do
+    case $1 in
+      -h|--help)
+        # Display help message and exit.
+        print_usage
+        exit
+        ;;
+      --dry-run)
+        DRY_RUN=true
+        ;;
+      --renovate)
+        AUTHOR="$AUTHOR_RENOVATE"
+        ;;
+      --)
+        # End of all options.
+        shift
+        break
+        ;;
+      -?*)
+        echo "WARN: Unknown option $1" >&2
+        ;;
+      *)
+        # No more options.
+        break
+        ;;
+    esac
+    shift
+  done
 
-found=$(echo "$status_urls"|wc -l|tr -d ' ')
-echo "=> found $found repositories"
+  $DRY_RUN && echo "=> running in dry run mode"
 
-i=0
-for u in $status_urls; do
-  ((i=i+1))
-  repo="${u##https://api.github.com/repos/}"
-  echo "=> processing $i/$found : ${repo}"
-  result=$(gh api "$u/commits/teams-alignment-branch/status" --jq '.state')
-  total_count=$(gh api "$u/commits/teams-alignment-branch/status" --jq '.total_count')
-  if [ "$result" == "success" ] || [ "$result" == "pending" ]; then
-    approve_and_merge "$repo"
-  elif [ "$total_count" == "0" ]; then
-    echo "   no statuses found, trying with Github Checks instead"
-    result_checks=$(gh api "$u/commits/teams-alignment-branch/check-suites" --jq '.check_suites[0].status')
-    if [ "$result_checks" == "completed" ]; then
+  urls="$(gh api search/issues -X GET --paginate -F q="type:pr org:giantswarm state:open archived:false author:$AUTHOR review-requested:@me" --template '{{range .items}}{{.html_url}}{{"\n"}}{{end}}')"
+
+  found="$(echo -n "$urls"|wc -l|tr -d ' ')"
+  echo "=> found $found urls"
+  exit
+
+  i=0
+  for u in $urls; do
+    ((i=i+1))
+    repo="${u##https://api.github.com/repos/}"
+    path="${u#https://api.github.com/repos/}"
+    echo "=> processing $i/$found : $u"
+    result=$(gh api "$u/commits/teams-alignment-branch/status" --jq '.state')
+    total_count=$(gh api "$u/commits/teams-alignment-branch/status" --jq '.total_count')
+    if [ "$result" == "success" ] || [ "$result" == "pending" ]; then
       approve_and_merge "$repo"
+    elif [ "$total_count" == "0" ]; then
+      echo "   no statuses found, trying with Github Checks instead"
+      result_checks=$(gh api "$u/commits/teams-alignment-branch/check-suites" --jq '.check_suites[0].status')
+      if [ "$result_checks" == "completed" ]; then
+        approve_and_merge "$repo"
+      else
+        echo "   skipping: branch check is not successful"
+      fi
     else
-      echo "   skipping: branch check is not successful"
+      echo "   skipping: branch status is not successful"
     fi
-  else
-    echo "   skipping: branch status is not successful"
-  fi
-done
+  done
+}
+
+main "$@"
