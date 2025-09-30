@@ -141,6 +141,55 @@ method_go_install() {
   install --no-target-directory --mode=0755 "$tmp_dir/$path" "$destination"
 }
 
+method_verify() {
+  local paths="$1"
+  local mode="$2"
+
+  for path in "${paths[@]}"; do
+    _path="$(echo "$path" | cut -sd: -f1)"
+    _bin="$(echo "$path" | cut -sd: -f2)"
+    if [[ -z "$_path" ]] || [[ -z "$_bin" ]]; then
+      echo_stderr "invalid path format: $path"
+      return 1
+    fi
+
+    # TODO: are we passing $_bin or $_path to get_bin_format? here and later
+    local bin_name; bin_name="$(get_bin_format "$_bin" "$version")"
+    local destination="${destination_dir}/${bin_name}"
+    # TODO: whats with key? is it always the same as _bin?
+    local destination_linkname="${destination_dir}/${key}"
+
+    if [[ -f "$destination" ]] && [[ "$destination" -ef "$destination_linkname" ]]; then
+      continue
+    fi
+
+    [[ -z "$mode" ]] && continue
+
+    local destination_linkname_target; destination_linkname_target="$(readlink -f "$destination_linkname")"
+
+    if [[ ! -f "$destination_linkname_target" ]]; then
+      #log "$key" "$version" "${RED}not found${NO_COLOR}"
+      echo "$bin_name"
+      return 1
+    fi
+
+    local basename="${destination_linkname_target##*/}"
+    local bin_pattern; bin_pattern="$(get_bin_format "$_bin" "($pattern)")"
+    local current_version; current_version="$(echo "$basename" | sed -nE "s/${bin_pattern}/\1/p")"
+    if [[ -z "$current_version" ]]; then
+      #log "$key" "$version" "${RED}invalid${NO_COLOR}"
+      echo "$bin_name"
+      return 2
+    fi
+
+    if [[ "$mode" != "list" ]] && [[ "$version" != "$current_version" ]]; then
+      #log "$key" "$current_version" "${PURPLE}outdated${NO_COLOR}\t new version $version"
+      echo "$bin_name"
+      return 3
+    fi
+  done
+}
+
 # Extra installation for golang
 # This is a specific case for the golang toolchain only
 method_extra_golang_install() {
@@ -211,9 +260,11 @@ method_archive_install() {
 
 # Install tool in the specified destination directory.
 install_command() {
-  local destination_dir="$1"
-  local key="$2"
+  local mode="$1"; shift
+  local destination_dir="$1"; shift
+  local key="$1"; shift
 
+  local bin; bin="$(get_config "$key" "bin" "$key")"
   local version; version="$(get_config "$key" "version")"
   local pattern; pattern="$(get_config "$key" "version_pattern" "$DEFAULT_VERSION_PATTERN")"
 
@@ -236,9 +287,14 @@ install_command() {
     fi
   fi
 
-  local bin_name; bin_name="$(get_bin_format "$key" "$version")"
+  local paths; IFS=' ' read -r -a paths <<< "$(get_config_format "$key" "path" "$key:$key" "$version")"
+
+  ## Replace logic with method_verify
+  ## Always run method_verify to check if the binary is already installed, pass the mode so it can do additional checks when asked to
+  ## From here  ##
+  local bin_name; bin_name="$(get_bin_format "$bin" "$version")"
   local destination="${destination_dir}/${bin_name}"
-  local destination_linkname="${destination_dir}/${key}"
+  local destination_linkname="${destination_dir}/${bin}"
 
   if [[ -f "$destination" ]] && [[ "$destination" -ef "$destination_linkname" ]]; then
     echo_up
@@ -256,7 +312,7 @@ install_command() {
     fi
 
     local basename="${destination_linkname_target##*/}"
-    local bin_pattern; bin_pattern="$(get_bin_format "$key" "($pattern)")"
+    local bin_pattern; bin_pattern="$(get_bin_format "$bin" "($pattern)")"
     local current_version; current_version="$(echo "$basename" | sed -nE "s/${bin_pattern}/\1/p")"
     if [[ -z "$current_version" ]]; then
       echo_up
@@ -269,6 +325,8 @@ install_command() {
       log "$key" "$current_version" "${PURPLE}outdated${NO_COLOR}\t new version $version"
       return 0
     fi
+  ## Until here ##
+  ## Skip install logic if mode is set
   else
     local method; method="$(get_config "$key" "method" "archive")"
     if ! declare -F "method_${method}_install" &> /dev/null; then
@@ -298,12 +356,14 @@ install_command() {
 }
 
 uninstall_command() {
-  local destination_dir="$1"
-  local key="$2"
+  local mode="$1"; shift
+  local destination_dir="$1"; shift
+  local key="$1"; shift
 
   log "$key" "" "processing"
 
-  local destination_linkname="${destination_dir}/${key}"
+  local bin; bin="$(get_config "$key" "bin" "$key")"
+  local destination_linkname="${destination_dir}/${bin}"
 
   local extra_method; extra_method="$(get_config "$key" "method_extra")"
   if declare -F "method_extra_${extra_method}_uninstall" &> /dev/null; then
@@ -317,7 +377,7 @@ uninstall_command() {
   rm -f "$destination_linkname"
 
   local pattern; pattern="$(get_config "$key" "version_pattern" "$DEFAULT_VERSION_PATTERN")"
-  local bin_pattern; bin_pattern="$(get_bin_format "$key" "$pattern")"
+  local bin_pattern; bin_pattern="$(get_bin_format "$bin" "$pattern")"
   local destination_pattern="${destination_dir}/${bin_pattern}"
   find "$destination_dir" -type f -regextype posix-egrep -regex "$destination_pattern" -delete
 
@@ -331,6 +391,9 @@ get_bin_format() {
   echo "${output//"{VERSION}"/$2}"
 }
 
+# Get configuration value for a specific key
+# The key is in the format prefix_setting, where prefix is the name of the tool and setting is the configuration setting.
+# If the value is not set, it returns the default value provided as the third argument.
 get_config() {
   local varname="${1}_${2}"
   echo "${!varname:-${3:-}}"
@@ -362,14 +425,15 @@ set_key_max_length() {
   done
 }
 
-check_path() {
+check_destination_dir() {
   if ! echo "${PATH//:/$'\n'}" | grep -qE "^$DEFAULT_DESTINATION_DIR$"; then
     echo_log warning "\$PATH does not contain $DEFAULT_DESTINATION_DIR"
   fi
 }
 
 run() {
-  local f="$1"; shift
+  local cmd="$1"; shift
+  local mode="$1"; shift
   local destination_dir="$1"; shift
 
   # Process each tool
@@ -381,20 +445,17 @@ run() {
     fi
 
     # Magic trick to capture stderr, print stdout
-    # Interrupt $f on error and continue with the next tool
+    # Interrupt $cmd on error and continue with the next tool
     {
       error="$({
         set -e
-        "$f" "$destination_dir" "$key" 1>&3
+        "$cmd" "$mode" "$destination_dir" "$key" 1>&3
       } 2>&1 )"
     } 3>&1
 
     test $? -eq 0 && continue
-    if [[ -z "$error" ]]; then
-      error="${RED}failed${NO_COLOR} processing"
-    else
-      error="${RED}failed${NO_COLOR} - $error"
-    fi
+    error="${RED}failed${NO_COLOR} - $error"
+    [[ -z "$error" ]] && error="${RED}failed${NO_COLOR} processing"
 
     echo_up
     log "$key" "" "$error"
@@ -407,11 +468,11 @@ main() {
   trap 'rm -rf "$TMP_DIR"' EXIT
 
   # Arguments
-  local destination_dir="$DEFAULT_DESTINATION_DIR"
   local config_file="$DEFAULT_CONFIG_FILE"
+  local destination_dir="$DEFAULT_DESTINATION_DIR"
   local keys=()
   local no_header=false
-  mode=""
+  local mode=""
 
   # Process arguments
   while [[ $# -gt 0 ]]; do
@@ -443,11 +504,16 @@ main() {
   # Check if the command exists
   declare -F "$cmd" &> /dev/null || exit_log error "unknown command $1"
 
-  # Check if the destination directory is in PATH
-  check_path
-
-  # Ensure the config is initialized
+  # Ensure the config file is initialized
   init_config "$config_file"
+  # Load the config file
+  # shellcheck source=/dev/null
+  source "${config_file}" &>/dev/null || exit_log error "failed loading config $config_file"
+
+  # Check if the destination directory is in PATH
+  check_destination_dir
+  # Create the destination directory if it doesn't exist
+  mkdir -p "$destination_dir"
 
   # If no keys are provided, use all keys found in the config file
   [[ "${#keys[@]}" -eq 0 ]] && readarray -t keys < <(get_keys "$config_file")
@@ -456,16 +522,10 @@ main() {
   # Set the maximum length of the keys for formatting
   set_key_max_length "${keys[@]}"
 
-  # Load the config file
-  # shellcheck source=/dev/null
-  source "${config_file}" &>/dev/null || exit_log error "failed loading config $config_file"
-
-  # Create the destination directory if it doesn't exist
-  mkdir -p "$destination_dir"
-
-  # Run the command
+  # Print the header if not suppressed
   ! $no_header && printf "%-${KEY_MAX_LENGTH}s %s\t%s\n" "tool" "version" "status"
-  run "$cmd" "$destination_dir" "${keys[@]}"
+  # Run the command
+  run "$cmd" "$mode" "$destination_dir" "${keys[@]}"
 }
 
 main "$@"
