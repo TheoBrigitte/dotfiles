@@ -31,12 +31,13 @@ check_systemd_entry() {
   fi
 
   # Check if entry exists in systemd-boot
-  if [[ "$(bootctl list --no-pager --json=short | jq -r '.[] | select(.id == "'"$LOADER_ENTRY"'") | objects != ""')" != "true" ]]; then
+  title="$(bootctl list --no-pager --json=short | jq -r '.[] | select(.id == "'"$LOADER_ENTRY"'") | .showTitle')"
+  if [[ -z "$title" ]]; then
     echo -e "$error - entry not found in systemd-boot"
     return
   fi
 
-  echo -e "${GREEN}ok${NO_COLOR}"
+  echo -e "${GREEN}${title}${NO_COLOR}"
 }
 
 check_kernel() {
@@ -59,7 +60,7 @@ check_kernel() {
     return
   fi
 
-  echo -e "${GREEN}ok${NO_COLOR}"
+  echo -e "${GREEN}${KERNEL_VERSION}${NO_COLOR}"
 }
 
 status_command() {
