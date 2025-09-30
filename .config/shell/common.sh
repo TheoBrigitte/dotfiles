@@ -20,10 +20,9 @@ LOCAL_BIN="$HOME/.local/bin"
 export GOPATH="$HOME"
 export GOBIN="$GOPATH/bin"
 export PATH="$PATH:$LOCAL_BIN:$GOBIN:$HOME/.krew/bin:$HOME/.cargo/bin:$HOME/projects/atlas-hacks/hack/bin:$HOME/.local/share/solana/install/active_release/bin"
-export EDITOR=vim
+export EDITOR=nvim
 export VISUAL=$EDITOR
 export GPG_TTY=$(tty)
-export TERM=xterm-256color
 
 export FZF_DEFAULT_COMMAND='fd --type file --hidden --exclude .git'
 #export FZF_DEFAULT_COMMAND='rg --files --no-ignore --hidden --follow --glob "!.git/*"'
@@ -45,12 +44,12 @@ export GRAFANA_API_KEY=$(cat "$HOME/secrets/giantswarm/grafana_key")
 export CIRCLECI_TOKEN=$(cat "$HOME/secrets/theo/circleci_token")
 export LPASS_DISABLE_PINENTRY=1
 export OPSCTL_SLACK_TOKEN=$(cat "$HOME/secrets/giantswarm/slack_token")
+export PAGERDUTY_API_TOKEN=$(cat "$HOME/secrets/giantswarm/pagerduty_token")
 
 #export QT_STYLE_OVERRIDE=gtk
 export QT_SELECT=qt5
 
 # colors
-export TERM=xterm-256color
 export BASE16_SHELL="$HOME/.config/base16-shell/"
 [ -n "$PS1" ] && [ -s "$BASE16_SHELL/profile_helper.sh" ] && \
 		source "$BASE16_SHELL/profile_helper.sh"
