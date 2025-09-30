@@ -134,5 +134,5 @@ cdpath=(
 local blue='%{[1;36m%}'
 local red='%{[1;31m%}'
 local c="%(?.${blue}.${red})"
-PROMPT="${blue}%1~%{$reset_color%} \$(kube_ps1)${c}%(!.#.$)%f%{$reset_color%} "
+PROMPT="${blue}%1~%{$reset_color%} ${c}%(!.#.$)%f%{$reset_color%} "
 if [ -e /Users/theo/.nix-profile/etc/profile.d/nix.sh ]; then . /Users/theo/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
