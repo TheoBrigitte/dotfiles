@@ -50,6 +50,9 @@ alias gls='gll --stat'
 alias gpf='gp -f'
 alias gds='git diff --stat $(git merge-base --fork-point origin/master)'
 alias gra='git remote set-head origin --auto'
+function gdt(){
+  git push origin ":refs/tags/$1" # delete remote tag
+}
 
 # giantswarm
 alias kg='kubectl -n=giantswarm'
