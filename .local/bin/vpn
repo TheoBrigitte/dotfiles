@@ -40,6 +40,7 @@ systemd_resolved_script_url=https://raw.githubusercontent.com/jonathanio/update-
 # NetworkManager dispatcher script
 # This script is used to start and stop OpenVPN connections via NetworkManager.
 nm_dispatcher_file=/etc/NetworkManager/dispatcher.d/10-openvpn
+# shellcheck disable=SC2016
 nm_dispatcher_script='#!/bin/sh
 case "$2" in
   up)
@@ -138,7 +139,7 @@ get_connection_or_first_active() {
 }
 
 setup_resolv_conf_ok() {
-	test $(readlink -nf "$resolv_conf") = "$resolv_conf_target"
+	test "$(readlink -nf "$resolv_conf") = $resolv_conf_target"
 }
 
 setup_systemd_resolved_ok() {
@@ -152,7 +153,7 @@ setup_systemd_resolved_script_ok() {
 setup_nm_dispatcher_ok() {
 	[ -x "$nm_dispatcher_file" ] && \
 		diff -q <(echo -n "${nm_dispatcher_script}") "$nm_dispatcher_file" &>/dev/null && \
-		[ $(stat --printf "%u" "$nm_dispatcher_file") -eq 0 ]
+		[ "$(stat --printf "%u" "$nm_dispatcher_file")" -eq 0 ]
 }
 
 setup_check() {
@@ -218,7 +219,7 @@ if [ "${ACTION}" == "on" ]; then
 			echo -n "."
 			if ip link show up "tun-gs-${connection%.*}" &>/dev/null; then
 				echo
-				echo "> connected pid=$(cat /var/run/${connection}.pid)"
+				echo "> connected pid=$(cat "/var/run/${connection}.pid")"
 				exit 0
 			fi
 			sleep 1
@@ -239,7 +240,7 @@ if [ "${ACTION}" == "off" ]; then
 	echo "> stopping ${connection}"
 	if nmcli connection down "${connection}" 1>/dev/null; then
 		echo -n "> waiting "
-		for i in $(seq 1 5); do
+		for (( i=0; i<5; i++ )); do
 			echo -n "."
 			if ! ip link show up "tun-gs-${connection%.*}" &>/dev/null; then
 				echo
@@ -268,7 +269,7 @@ if [ "${ACTION}" == "logs" ]; then
 		pid="$(cat "/var/run/${connection}.pid")"
 		journalctl_args=(--lines=100 --follow)
 		if [ $# -gt 0 ]; then
-			journalctl_args=($@)
+			journalctl_args=("$@")
 		fi
 		journalctl "${journalctl_args[@]}" _PID="$pid"
 
@@ -295,11 +296,11 @@ if [ "${ACTION}" == "install" ]; then
 	# dry-run=false : will print and execute the command
 	run(){
 		if $dry_run; then
-			echo "dry_run: $@" 1>&2
+			echo "dry_run: $*" 1>&2
 		else
 		(
 			set -x
-			$@
+			"$@"
 		)
 		fi
 	}
@@ -314,7 +315,7 @@ if [ "${ACTION}" == "install" ]; then
 	resolveconf_update=false
 	if ! setup_resolv_conf_ok; then
 		if ! $force; then
-			read -p "  Update $resolv_conf ? (Y/n) "
+			read -r -p "  Update $resolv_conf ? (Y/n) "
 			if [[ $REPLY =~ ^[Nn]$ ]]; then
 				resolveconf_update=false
 			else
@@ -336,7 +337,7 @@ if [ "${ACTION}" == "install" ]; then
 	systemdresolved_enable=false
 	if ! setup_systemd_resolved_ok; then
 		if ! $force; then
-			read -p "> Enable $systemd_resolved_service ? (Y/n) "
+			read -r -p "> Enable $systemd_resolved_service ? (Y/n) "
 			if [[ $REPLY =~ ^[Nn]$ ]]; then
 				systemdresolved_enable=false
 			else
@@ -369,7 +370,7 @@ if [ "${ACTION}" == "install" ]; then
 	nm_dispatcher_install=false
 	if ! setup_nm_dispatcher_ok; then
 		if ! $force; then
-			read -p "> Install $nm_dispatcher_file ? (Y/n) "
+			read -r -p "> Install $nm_dispatcher_file ? (Y/n) "
 			if [[ $REPLY =~ ^[Nn]$ ]]; then
 				nm_dispatcher_install=false
 			else
@@ -397,7 +398,7 @@ if [ "${ACTION}" == "install" ]; then
 	systemdresolved_install=false
 	if ! setup_systemd_resolved_script_ok; then
 		if ! $force; then
-			read -p "  Install update-systemd-resolved ? (Y/n) "
+			read -r -p "  Install update-systemd-resolved ? (Y/n) "
 			if [[ $REPLY =~ ^[Nn]$ ]]; then
 				systemdresolved_install=false
 			else
@@ -434,11 +435,11 @@ if [ "${ACTION}" == "uninstall" ]; then
 	# dry-run=false : will print and execute the command
 	run(){
 		if $dry_run; then
-			echo "dry_run: $@"
+			echo "dry_run: $*"
 		else
 		(
 			set -x
-			$@
+			"$@"
 		)
 		fi
 	}
@@ -465,7 +466,7 @@ if [ "${ACTION}" == "show-config" ]; then
 	if [ $# -gt 0 ]; then shift; fi
 	connection="$(get_connection_or_first_active "$connection_name")"
 
-	cat ~/.config/vpn/${connection}.conf
+	cat ~/".config/vpn/${connection}.conf"
 
 	exit 0
 fi
@@ -491,21 +492,24 @@ if [ "${ACTION}" == "update-config" ]; then
 		# Get new connection config
 		url="${config[1]}"
 		port="${config[2]}"
+		connection_file=~/".config/vpn/${connection}.conf"
 
 		echo "  get connection config from ${url}"
-		scp -qP "$port" "${url}" ~/.config/vpn/${connection}.conf
-		sed -i '\#up /etc/openvpn/scripts/update-systemd-resolved#d' ~/.config/vpn/${connection}.conf
-		sed -i '\#down /etc/openvpn/scripts/update-systemd-resolved#d' ~/.config/vpn/${connection}.conf
-		sed -i '\#down-pre#d' ~/.config/vpn/${connection}.conf
+		scp -qP "$port" "${url}" "$connection_file"
+		sed -i '\#up /etc/openvpn/scripts/update-systemd-resolved#d' "$connection_file"
+		sed -i '\#down /etc/openvpn/scripts/update-systemd-resolved#d' "$connection_file"
+		sed -i '\#down-pre#d' "$connection_file"
 
-		echo "up $(command -vp update-systemd-resolved)" >> ~/.config/vpn/${connection}.conf
-		echo "up-restart" >> ~/.config/vpn/${connection}.conf
-		echo "down $(command -vp update-systemd-resolved)" >> ~/.config/vpn/${connection}.conf
-		echo "down-pre" >> ~/.config/vpn/${connection}.conf
+		{
+			echo "up $(command -vp update-systemd-resolved)"
+			echo "up-restart"
+			echo "down $(command -vp update-systemd-resolved)"
+			echo "down-pre"
+		} >> "$connection_file"
 
 		# Magic fix for connection timeout
 		# See https://gigantic.slack.com/archives/C52L7C6SC/p1695748910494979 https://github.com/giantswarm/vpn/pull/418
-		echo "tun-mtu 1410" >> ~/.config/vpn/${connection}.conf
+		echo "tun-mtu 1410" >> "$connection_file"
 
 		# Create a dummy connection to trigger the 10-openvpn script
 		echo "  setup connection into NetworkManager"
