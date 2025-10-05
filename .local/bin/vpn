@@ -156,6 +156,10 @@ setup_nm_dispatcher_ok() {
 		[ "$(stat --printf "%u" "$nm_dispatcher_file")" -eq 0 ]
 }
 
+setup_group_ok() {
+	getent group network | grep -q "\b${USER}\b"
+}
+
 setup_check() {
 	if ! setup_resolv_conf_ok; then
 		echo -e "> ${RED}setup broken: $resolv_conf is not managed by systemd-resolved${NC}"
@@ -168,6 +172,9 @@ setup_check() {
 	fi
 	if ! setup_nm_dispatcher_ok; then
 		echo -e "> ${RED}setup broken: $nm_dispatcher_file is broken${NC}"
+	fi
+	if ! setup_group_ok; then
+		echo -e "> ${RED}setup broken: user ${USER} is not in group 'network'${NC}"
 	fi
 }
 
@@ -304,6 +311,12 @@ if [ "${ACTION}" == "install" ]; then
 		)
 		fi
 	}
+
+	if ! setup_group_ok; then
+		echo "> Adding user ${USER} to group 'network'"
+		run sudo usermod -aG network "${USER}"
+		newgrp network
+	fi
 
 	# Check for local DNS resolver to use systemd-resolved with stub resolv.
 	# This allow for DNS requests to be routed to correct network interface
