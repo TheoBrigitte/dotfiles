@@ -1,0 +1,45 @@
+#!/bin/bash
+#
+# Author: Théo Brigitte
+# Date: 2025-09-16
+
+# Usage: ingress-host [options] <host-pattern>
+#
+# This script retrieves and displays the NGINX configuration for a specific host looking from all ingress-nginx pods in a Kubernetes cluster.
+# It uses kubectl to interact with the cluster and extracts the relevant server block from the NGINX configuration using sed
+#
+# <host-pattern>  Pattern to match the host in the NGINX configuration (e.g., write.loki)
+#
+# Options:
+#   -h, --help            Show this help message and exit
+#
+# Examples:
+#   ingress-host write.loki
+
+set -eu
+
+BIN="$(basename "$0")"
+
+# print help message for a specific command
+print_help() {
+  # Extract usage from the script comments
+  # This command works as follows:
+  # 1. /#\s?Usage: /   -> Search for the line starting with "# Usage: ingress-host <command>
+  # 2. /^([^#]|$)/{p;  -> Print all subsequent lines starting with "#" until a line not starting with "#" is found
+  # 3. /^([^#]|$)/q}   -> Force quit after the first non-comment line to avoid printing other usage sections
+  # 4. '$d; s/#\s\?//' -> Remove the last line (non-comment) and strip leading "# " from each line
+  sed -Ene '/#\s?Usage: '"$BIN $*"'/,/^([^#]|$)/{p; /^([^#]|$)/q}' "$0" | sed -e '$d; s/#\s\?//'
+}
+
+if [[ "$@" == *-h* || $# -eq 0 ]]; then
+  print_help
+  exit 0
+fi
+
+host_pattern="$1"
+
+kubectl get po --all-namespaces --selector=app.kubernetes.io/name=ingress-nginx --no-headers -o custom-columns=":metadata.namespace,:metadata.name" | \
+
+while read -r namespace pod; do
+  kubectl exec --namespace="$namespace" "$pod" -- cat nginx.conf | sed -ne "/start server $host_pattern/,/end server/p"
+done
