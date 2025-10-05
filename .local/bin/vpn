@@ -295,7 +295,7 @@ if [ "${ACTION}" == "install" ]; then
 	# dry-run=false : will print and execute the command
 	run(){
 		if $dry_run; then
-			echo "dry_run: $@"
+			echo "dry_run: $@" 1>&2
 		else
 		(
 			set -x
@@ -382,7 +382,8 @@ if [ "${ACTION}" == "install" ]; then
 
 	if $nm_dispatcher_install; then
 		echo "  Installing $nm_dispatcher_file"
-		run sudo echo -n "$nm_dispatcher_script" > "$nm_dispatcher_file"
+		# Make it more complicated to allow dry run
+		run echo -n "$nm_dispatcher_script" | run sudo tee "$nm_dispatcher_file" 1>/dev/null
 		run sudo chmod +rx "$nm_dispatcher_file"
 		run sudo chown root: "$nm_dispatcher_file"
 	else
